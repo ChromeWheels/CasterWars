@@ -2,19 +2,35 @@
 using System.Collections;
 using System.Collections.Generic;
 
+/**
+ * Superclass of the map levels
+ */
 public class Map : MonoBehaviour {
 
-	public Dimensions dimensions;
-	public GameObject highlightPrefab;
+	public Dimensions dimensions; //!< The dimensions of the map
+	public GameObject highlightPrefab; //!< The GameObject that is used for highlighting the tiles
 
 	[HideInInspector]
-	public int[,] tiles;
+	public int[,] tiles; //!< The multidemensional array of what tiles are where on the map
+						 //!< 
+						 //!< This is set in the child classes
+						 //!< 
+						 //!< Example of using this:
+						 //!< 
+						 //!< NOTE: _the height is the map height minus 1_
+						 //!< ~~~{.cs}
+						 //!< void Awake() {
+						 //!< 	tiles = new int[<width>, <height>] {
+						 //!< 	{<tileType>, <tileType>},
+						 //!< 	{<tileType>, <tileType>}
+						 //!< }
+						 //!< ~~~ 
 
-	private List<GameObject> highlightedTiles;
-	private List<int> locationIndexes;
-	private List<Vector2> locations;
-	private Tiles tilesScript;
-	private int startingIndex;
+	private List<GameObject> highlightedTiles; //!< Temporary list of highlighted tiles
+	private List<int> locationIndexes; //!< Temporary list of unique neighbor locations. Used to prevent duplicate locations in List<Vector2> locations
+	private List<Vector2> locations; //!< Temporary list of neighbors
+	private Tiles tilesScript; //!< Local reference to the Tiles script instance
+	private int startingIndex; //!< Variable used when getting neighbors to prevent adding the starting tile to poosible neighbors
 
 	/**
 	 * Called when the script is loaded, before the game starts
@@ -33,7 +49,7 @@ public class Map : MonoBehaviour {
 	 * @param range Amount that player can move current unit
 	 * @return List of available neighbors
 	 */
-	public List<Vector2> getNeighbors (Vector2 location, int range) {
+	public List<Vector2> getNeighbors (Vector2 location, float range) {
 		locationIndexes = new List<int> ();
 		locations = new List<Vector2> ();
 		startingIndex = convertToIndex (location);
@@ -67,9 +83,9 @@ public class Map : MonoBehaviour {
 	 * @param location Location of the starting point tile
 	 * @param range Remaining movement left
 	 */
-	private void traverseNeighbors (Vector2 location, int range) {
+	private void traverseNeighbors (Vector2 location, float range) {
 		int index = convertToIndex (location);
-		int movementCost = tilesScript.getMovementCost (getTileType (location));
+		float movementCost = tilesScript.getMovementCost (getTileType (location));
 
 		if (canMoveFrom (location, range, movementCost)) {
 			range -= movementCost;
@@ -119,7 +135,7 @@ public class Map : MonoBehaviour {
 	 * @param movementCost Cost of moving from current tile
 	 * @return Boolean value of availability to move from current tile
 	 */
-	private bool canMoveFrom (Vector2 location, int range, int movementCost) {
+	private bool canMoveFrom (Vector2 location, float range, float movementCost) {
 		bool unitOnTile = false;
 
 		return (!unitOnTile && (range - movementCost) >= 0);
@@ -132,7 +148,6 @@ public class Map : MonoBehaviour {
 	 * @return Boolean value of availability to move to provided tile
 	 */
 	private bool canMoveTo (Vector2 location) {
-		Debug.Log (location);
 		bool canMove = tilesScript.getCanMove (getTileType (location));
 		bool unitOnTile = false;
 

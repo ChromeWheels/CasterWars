@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+/**
+ * Child Map class that holds the values for the variables
+ */
 public class _Level_01 : Map {
 
 	public static _Level_01 S;
