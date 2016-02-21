@@ -1,66 +1,150 @@
 ﻿using UnityEngine;
-using LitJson;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
 public class Map : MonoBehaviour {
 
-	public static Map S;
+	public Dimensions dimensions;
+	public GameObject highlightPrefab;
 
-	public List<GameObject> tileTypes;
+	[HideInInspector]
+	public int[,] tiles;
 
-	private int mapWidth;
-	private List<int> tileTypeIds;
+	private List<GameObject> highlightedTiles;
+	private List<int> locationIndexes;
+	private List<Vector2> locations;
+	private Tiles tilesScript;
+	private int startingIndex;
 
+	/**
+	 * Called when the script is loaded, before the game starts
+	 */
 	public void Awake () {
+		highlightedTiles = new List<GameObject> ();
+		tilesScript = Tiles.S;
 
-		S = this;
-
-		tileTypeIds = new List<int> ();
+		Vector3 pos = new Vector3 ((dimensions.height / 2) - 0.5f, transform.position.y, (dimensions.height / 2) - 0.5f);
+		transform.position = pos;
 	}
 
-	public void createMap (JsonData jsonData, bool boolBuildMap) {
-		mapWidth = int.Parse (jsonData ["width"].ToString ());
+	/** 
+	 * Gets all of the neighboring tiles within a movement range
+	 * @param location Location of unit's current position
+	 * @param range Amount that player can move current unit
+	 * @return List of available neighbors
+	 */
+	public List<Vector2> getNeighbors (Vector2 location, int range) {
+		locationIndexes = new List<int> ();
+		locations = new List<Vector2> ();
+		startingIndex = convertToIndex (location);
 
-		for (int i = 0; i < jsonData ["tiles"].Count; i++) {
-			tileTypeIds.Add (int.Parse (jsonData ["tiles"] [i] ["type"].ToString ()));
-		}
+		traverseNeighbors (location, range);
 
-		if (boolBuildMap) {
-			StartCoroutine (waitToBuildMap ());
+		return locations;
+	}
+
+	/**
+	 * Loops through the provided Vector2 array of locations and created highlighted tiles
+	 * @param locations List of locations to highlight
+	 */
+	public void highlightNeighbors (List<Vector2> locations) {
+		foreach (Vector2 location in locations) {
+			Vector3 pos = new Vector3 (location.x, -0.59f, (dimensions.height - location.y));
+			GameObject newHighlight = Instantiate (highlightPrefab, pos, Quaternion.identity) as GameObject;
+			highlightedTiles.Add (newHighlight);
 		}
 	}
 
-	public void buildMap () {
-		int row = 0;
-		int j = 0;
-		int i = 0;
+	/**
+	 * Removes all currently highlighted tiles
+	 */
+	public void removeHighlights () {
+	}
 
-		try {
-			for ( ; i < tileTypeIds.Count; i++) {
-				Vector3 pos = new Vector3 (j, 0, (row * -1));
-				GameObject tile = Instantiate (tileTypes [tileTypeIds [i] - 1], pos, Quaternion.identity) as GameObject;
-				tile.transform.Rotate (0, 180, 0);
-				tile.name = string.Format ("[{0},{1}] - {2}", j, row, tileTypes [tileTypeIds [i] - 1].name);
-				tile.transform.parent = gameObject.transform;
+	/**
+	 * A recursive function that moves over the neighboring tiles
+	 * Runs a breadth first search of the neighboring tiles for all available movement possibilities.
+	 * @param location Location of the starting point tile
+	 * @param range Remaining movement left
+	 */
+	private void traverseNeighbors (Vector2 location, int range) {
+		int index = convertToIndex (location);
+		int movementCost = tilesScript.getMovementCost (getTileType (location));
 
-				if (j >= (mapWidth - 1)) {
-					j = 0;
-					row++;
-				} else {
-					j++;
-				}
+		if (canMoveFrom (location, range, movementCost)) {
+			range -= movementCost;
+
+			// Go left
+			if (canMoveTo (new Vector2 (location.x - 1, location.y))) {
+				traverseNeighbors (new Vector2 (location.x - 1, location.y), range);
 			}
-		} catch (Exception e) {
-			Debug.Log (string.Format ("[{0}, {1}] - i: {2}, tileTypeIds: {3}", j, row, i, tileTypeIds.Count));
-			Debug.Log (e.Message);
-			Debug.Log (e.StackTrace);
+
+			// Go down
+			if (canMoveTo (new Vector2 (location.x, location.y + 1))) {
+				traverseNeighbors (new Vector2 (location.x, location.y + 1), range);
+			}
+
+			// Go right
+			if (canMoveTo (new Vector2 (location.x + 1, location.y))) {
+				traverseNeighbors (new Vector2 (location.x + 1, location.y), range);
+			}
+
+			// Go up
+			if (canMoveTo (new Vector2 (location.x, location.y - 1))) {
+				traverseNeighbors (new Vector2 (location.x, location.y - 1), range);
+			}
+		}
+
+		if (!locationIndexes.Contains (index) && index != startingIndex) {
+			locationIndexes.Add (index);
+			locations.Add (location);
 		}
 	}
 
-	IEnumerator waitToBuildMap () {
-		yield return new WaitForSeconds (5);
-		buildMap ();
+	/**
+	 * Generated a unique index to prevent duplicate array entries by traverseNeighbors
+	 * @see traverseNeighbors
+	 * @param location Location of the tile
+	 * @return A unique index integer
+	 */
+	private int convertToIndex (Vector2 location) {
+		return (int) (location.x + (dimensions.width * location.y));
+	}
+
+	/**
+	 * Check to see if the current unit can be moved. Along with canMovedTo
+	 * @see canMoveTo
+	 * @param location Location of current tile
+	 * @param range Available movement left
+	 * @param movementCost Cost of moving from current tile
+	 * @return Boolean value of availability to move from current tile
+	 */
+	private bool canMoveFrom (Vector2 location, int range, int movementCost) {
+		bool unitOnTile = false;
+
+		return (!unitOnTile && (range - movementCost) >= 0);
+	}
+
+	/**
+	 * Check to see if the current unit can be moved. Along with canMovedFrom
+	 * @see canMoveFrom
+	 * @param location Location of future tile
+	 * @return Boolean value of availability to move to provided tile
+	 */
+	private bool canMoveTo (Vector2 location) {
+		Debug.Log (location);
+		bool canMove = tilesScript.getCanMove (getTileType (location));
+		bool unitOnTile = false;
+
+		return (!unitOnTile && canMove);
+	}
+
+	/**
+	 * Get the tile type if the provided tile location
+	 * @param location Location of the tile to get the type
+	 * @return The type of the provided tile
+	 */
+	private int getTileType (Vector2 location) {
+		return tiles [(int)location.y, (int)location.x] - 1;
 	}
 }
