@@ -6,7 +6,7 @@ using System.Collections;
  */
 public class RemoteCamera : Camera {
 
-	public static RemoteCamera S;
+	public static RemoteCamera S = null;
 
 	/**
 	 * Called when the script is loaded, before the game starts

@@ -6,6 +6,6 @@
 [System.Serializable]
 public class FactionsList {
 
-	public string factionName;
-	public GameObject prefab;
+	public string factionName = ""; //!< The name of the faction
+	public GameObject prefab = null; //!< The prefab of the unit
 }

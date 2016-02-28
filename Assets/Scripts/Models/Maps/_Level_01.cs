@@ -8,6 +8,9 @@ public class _Level_01 : Map {
 
 	public static _Level_01 S;
 
+	/**
+	 * Called when the script is loaded, before the game starts
+	 */
 	void Awake() {
 		S = this;
 
@@ -113,6 +116,11 @@ public class _Level_01 : Map {
 			{6, 6, 6, 6, 6, 6, 6, 6, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6}
 		};
 
-		base.Awake ();
+		startingLocations = new Vector3[4] {
+			new Vector3 (10, 0, 12),
+			new Vector3 (89, 0, 87),
+			new Vector3 (10, 0, 87),
+			new Vector3 (89, 0, 12)
+		};
 	}
 }

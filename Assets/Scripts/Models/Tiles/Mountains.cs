@@ -2,12 +2,15 @@
 using System.Collections;
 
 /**
- * Child Tile class that holds the values for the variables
+ * Tile class for the mountains tiles
  */
 public class Mountains : Tile {
 
 	public static Mountains S;
 
+	/**
+	 * Called when the script is loaded, before the game starts
+	 */
 	void Awake () {
 		S = this;
 	}

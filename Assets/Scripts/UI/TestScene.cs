@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 public class TestScene : MonoBehaviour {
 
-	public void hightlightNeighbors () {
-		_Level_01 s = _Level_01.S;
+	public void hightlightMove () {
+		MapsController s = MapsController.S;
 		s.setNeighbors (new Vector2 (16, 80), 3);
-		s.highlightNeighbors ();
+		s.highlightNeighbors (HighlightActions.Move);
 	}
 
 	public void moveCamera () {
@@ -16,7 +16,12 @@ public class TestScene : MonoBehaviour {
 	}
 
 	public void removeNeighbors () {
-		_Level_01 s = _Level_01.S;
+		MapsController s = MapsController.S;
 		s.removeHighlights ();
+	}
+
+	public void createUnits () {
+		Tome s = Tome.S;
+		s.createUnit ();
 	}
 }

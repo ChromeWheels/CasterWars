@@ -3,6 +3,7 @@
  */
 [System.Serializable]
 public class Dimensions {
-	public int width;
-	public int height;
+	
+	public int width; //!< The width
+	public int height; //!< The height
 }

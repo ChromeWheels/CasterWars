@@ -11,44 +11,51 @@ public class Camera : MonoBehaviour {
 									 //!< - Values
 									 //!<   + _true_: The camera will scroll across the map from one point to another based on the speed assigned by moveSpeed
 									 //!<   + _false_: The camera will instantly move to the next coordinates
-	public float moveDurationPerTile; //!< The duration that the camera will take to scroll across the map
-									  //!< 
-									  //!< This is per tile needed to move so that the speed stays relatively the same no matter how far it has to travel
-									  //!< 
-									  //!< This is only used if doScrollMove is set to true
+	public float moveDurationPerTile = 0; //!< The duration that the camera will take to scroll across the map
+										  //!< 
+										  //!< This is per tile needed to move so that the speed stays relatively the same no matter how far it has to travel
+										  //!< 
+										  //!< This is only used if doScrollMove is set to true
+	public float targetY = 10.0f; //<! This is the y position that the camera will take after initial load
 
-	public float duration; //!< This is used to store the duration for the camera to move
-	private Vector3 target; //!< This is used to store the new location that the camera must move towards
+	private float duration = 0; //!< This is used to store the duration for the camera to move
+	private Vector3 target = Vector3.zero; //!< This is used to store the new location that the camera must move towards
 
 	/**
 	 * Move the camera to the given Vector3 coordinates
-	 * @param target The coordinates for the camera to move to
+	 * @param coords The coordinates for the camera to move to
 	 */
 	public void moveTo (Vector3 coords) {
 		target = coords;
 
-		setTransitionDuration ();
+		if (doScrollMove) {
+			setTransitionDuration ();
 
-		StartCoroutine (Transition ());
+			StartCoroutine (Transition ());
+		} else {
+			transform.position = target;
+		}
 	}
 
 	/**
 	* Move the camera to the given Vector2 coordinates using x and z
-	* @param target The coordinates for the camera to move to
+	* @param coords The coordinates for the camera to move to
 	*/
 	public void moveTo (Vector2 coords) {
-		if (doScrollMove) {
-			target = new Vector3 (coords.x, transform.position.y, coords.y);
+		target = new Vector3 (coords.x, targetY, coords.y);
 
+		if (doScrollMove) {
 			setTransitionDuration ();
 
 			StartCoroutine (Transition ());
+		} else {
+			transform.position = target;
 		}
 	}
 
 	/**
 	 * Aim the camera at the given Vector3 coordinates
-	 * @param target The coordinates for the camera to aim at
+	 * @param coords The coordinates for the camera to aim at
 	 */
 	public void aimAt (Vector2 coords) {
 	}
@@ -68,6 +75,9 @@ public class Camera : MonoBehaviour {
 		}
 	}
 
+	/**
+	 * Function that calculates the distance from the camera to the target.
+	 */
 	private void setTransitionDuration () {
 		Vector3 start = transform.position;
 		Vector3 end = target;

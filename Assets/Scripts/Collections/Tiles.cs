@@ -6,10 +6,13 @@ using System.Collections;
  */
 public class Tiles : MonoBehaviour {
 
-	public static Tiles S;
+	public static Tiles S = null;
 
-	public GameObject[] tiles; //!< The collection of tile prefabs
+	public GameObject[] tiles = null; //!< The collection of tile prefabs
 
+	/**
+	 * Called when the script is loaded, before the game starts
+	 */
 	void Awake () {
 		S = this;
 	}
