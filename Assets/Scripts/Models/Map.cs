@@ -6,23 +6,9 @@ using System.Collections;
  */
 public class Map : MonoBehaviour {
 
+	public Vector2 campRadius = Vector2.zero; //!< The radius (minus the starting point) of the camp in x and y
+	public Vector2[] commanderStartingLocations = null; //!< The list of pre-defined starting locations for the commanders
 	public Dimensions dimensions; //!< The dimensions of the map
-	public Vector3[] startingLocations = null; //!< The list of pre-defined starting locations
-											   //!< 
-											   //!< This is set in the child classes
-											   //!< 
-											   //!< ~~~{.cs}
-											   //!< void Awake() {
-											   //!<		startingLocations = new Vector3[4] {
-											   //!<			new Vector3 (x, y, z),
-											   //!<			new Vector3 (x, y, z),
-											   //!<			new Vector3 (x, y, z),
-											   //!<			new Vector3 (x, y, z)
-											   //!< 	};
-											   //!< }
-											   //!< ~~~ 
-
-	[HideInInspector]
 	public int[,] tiles = null; //!< The multidemensional array of what tiles are where on the map
 								//!< 
 								//!< This is set in the child classes
@@ -37,4 +23,5 @@ public class Map : MonoBehaviour {
 								//!< 	{<tileType>, <tileType>}
 								//!< }
 								//!< ~~~ 
+	public Vector2[] startingLocations = null; //!< The list of pre-defined starting locations
 }
