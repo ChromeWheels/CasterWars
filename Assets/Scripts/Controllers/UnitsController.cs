@@ -85,6 +85,9 @@ public class UnitsController : MonoBehaviour {
 				}
 			}
 		}
+
+		// Add the new units to the player
+		playerScript.units = units;
 	}
 
 	/**
