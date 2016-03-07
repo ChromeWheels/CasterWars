@@ -79,6 +79,9 @@ public class Game : MonoBehaviour {
 		}
 	}
 
+	/**
+	 * Function the gets the game underway
+	 */
 	public void doStartGame () {
 		// Get the maps controller
 		MapsController mapsController = MapsController.S;
@@ -106,6 +109,12 @@ public class Game : MonoBehaviour {
 
 		// Start the game with player1's turn
 		turnsController.startTurn (0);
+	}
+
+	/**
+	 * Ends the game
+	 */
+	public void doEndGame () {
 	}
 
 	/**

@@ -13,6 +13,8 @@ public class Player : MonoBehaviour {
 
 	[HideInInspector]
 	public List<GameObject> units = null; //!< The array of units that belongs to the player
+	[HideInInspector]
+	public bool commanderIsAlive = true; //!< Boolean value of if the commander is alive or not
 
 	/**
 	 * Called when the script is loaded, before the game starts

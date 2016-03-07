@@ -39,7 +39,7 @@ public class PlayerController : MonoBehaviour {
 		GameObject newPlayer = new GameObject ();
 
 		// Assign the parent
-		newPlayer.transform.SetParent (transform);
+		newPlayer.transform.SetParent (GameObject.Find ("Players").transform);
 
 		// Name the player
 		newPlayer.name = string.Format ("Player {0}", (playersCollection.players.Count + 1));
@@ -65,7 +65,7 @@ public class PlayerController : MonoBehaviour {
 
 	/**
 	 * Gets the player based on the player's number
-	 * @param The player's number
+	 * @param index The player's number
 	 * @return The player
 	 */
 	public GameObject getPlayer (int index) {

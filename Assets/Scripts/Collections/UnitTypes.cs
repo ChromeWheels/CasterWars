@@ -27,20 +27,6 @@ public class UnitTypes : MonoBehaviour {
 	}
 
 	/**
-	 * Retrieves the unit's cost to the population
-	 * @param unitType
-	 */
-	public int getUnitPopulationCost (string unitType) {
-		GameObject obj = null;
-
-		types.TryGetValue (unitType, out obj);
-
-		Unit script = obj.GetComponent<Unit> ();
-
-		return script.generalInformation.populationCost;
-	}
-
-	/**
 	 * Gets the prefab of supplied unit type and faction
 	 * @param faction The name of the faction
 	 * @param unitType The type of unit

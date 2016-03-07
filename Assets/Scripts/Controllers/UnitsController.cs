@@ -2,6 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 
+/**
+ * The controller for the units
+ */
 public class UnitsController : MonoBehaviour {
 
 	public static UnitsController S = null;
@@ -22,11 +25,52 @@ public class UnitsController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
-		// Get the unitTypes collection
 		unitTypesController = UnitTypes.S;
-
-		// Get the maps controller
 		mapsController = MapsController.S;
+
+		// Copy the settings from the parent unit types to the faction units
+		propagateOptions ();
+	}
+
+	/**
+	 * Retrieves the unit's cost to the population
+	 * @param unitType
+	 */
+	public int getUnitPopulationCost (string unitType) {
+		// Initialize the output
+		GameObject obj = null;
+
+		// Get the unitType
+		unitTypesController.types.TryGetValue (unitType, out obj);
+
+		// Get the script
+		Unit script = obj.GetComponent<Unit> ();
+
+		return script.generalInformation.populationCost;
+	}
+
+	/**
+	 * Copies the settings from the parent unit types to the faction units
+	 */
+	public void propagateOptions () {
+		// Loop through the unit types
+		foreach (GameObject type in unitTypesController.unitTypes) {
+			// Get the attached scripts
+			Unit parent = type.GetComponent<Unit> ();
+			Factions factions = type.GetComponent<Factions> ();
+
+			// Loop throught the factions
+			foreach (FactionsList faction in factions.factions) {
+				// Get the attached script
+				Unit child = faction.prefab.GetComponent<Unit> ();
+
+				// Copy the settings iff hasChanged is false on the child class
+				if (!child.hasChanged) {
+					// Copy the settings
+					child.turnSettings = parent.turnSettings;
+				}
+			}
+		}
 	}
 
 	/**
@@ -50,8 +94,14 @@ public class UnitsController : MonoBehaviour {
 		// Get the starting positions for the new units
 		List<Vector2> startingPositions = mapsController.getStartingGrid (totalCount, playerScript.generalSettings.playerNumber);
 
-		// Create amd add the commander
-		units.Add (initUnit (faction, "Commander", startingPositions[0], currentPlayer));
+		// Create and add the commander
+		newUnit = initUnit (faction, "Commander", startingPositions[0], currentPlayer);
+
+		// Add the commander to the units array
+		units.Add (newUnit);
+
+		// Add the commander to the map's location array
+		mapsController.addUnitToArray(newUnit, startingPositions [0]);
 
 		// Setup the index that will be used to retreive the starting position
 		// This is used in reverse so that the first used units will be on the outside of the starting group

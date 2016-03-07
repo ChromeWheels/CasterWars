@@ -14,9 +14,9 @@ public class MapsController : MonoBehaviour {
 	public GameObject highlightMovePrefab = null; //!< The GameObject that is used for highlighting the available tiles that can be moved to
 
 	[HideInInspector]
-	public List<Vector2> Neighbors {
-		get { return neighbors; }
-		private set { neighbors = value; }
+	public Dictionary<Vector2, HighlightActions> Moves {
+		get { return moves; }
+		private set { moves = value; }
 	} //!< Property method of Vector2[] neighbors
 	[HideInInspector]
 	public Dimensions Dimensions {
@@ -28,10 +28,12 @@ public class MapsController : MonoBehaviour {
 	private List<GameObject> highlightedTiles = null; //!< Temporary list of highlighted tiles
 	private List<int> locationIndexes = null; //!< Temporary list of unique neighbor locations. Used to prevent duplicate locations in List<Vector2> locations
 	private Map mapScript = null; //!< Local reference to the Map's script
-	private List<Vector2> neighbors = null; //!< Temporary list of neighbors
-	private Tiles tilesScript = null; //!< Local reference to the Tiles script instance
+	private Dictionary<Vector2, HighlightActions> moves = null; //!< Temporary list of possible moves
+	private TilesController tilesController = null; //!< Local reference to the TilesController
 	private int startingIndex = 0; //!< Variable used when getting neighbors to prevent adding the starting tile to poosible neighbors
 	private Dictionary<int, GameObject> unitLocations = null; //!< Associative array of units and their locations on the map
+	private TurnsController turnsController = null; //!< Local reference to the turns controller
+	private Game gameController = null; //!< Local reference to the game's controller
 
 	/**
 	 * Called when the script is loaded, before the game starts
@@ -47,8 +49,9 @@ public class MapsController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
-		// Get the tiles collection
-		tilesScript = Tiles.S;
+		tilesController = TilesController.S;
+		turnsController = TurnsController.S;
+		gameController = Game.S;
 	}
 
 	/**
@@ -70,7 +73,7 @@ public class MapsController : MonoBehaviour {
 		map.name = "Map";
 
 		// Set the parent
-		map.transform.SetParent (transform);
+		map.transform.SetParent (GameObject.Find ("Maps").transform);
 
 		// Get the variables from the map
 		mapScript = map.GetComponent<Map> ();
@@ -80,6 +83,10 @@ public class MapsController : MonoBehaviour {
 
 		// Move the map into place
 		map.transform.position = new Vector3 ((mapScript.dimensions.width / 2) - 0.5f, map.transform.position.y, (mapScript.dimensions.height / 2) - 0.5f);
+
+		// Give the map's dimensions to the remote camera
+		RemoteCamera rCamera = RemoteCamera.S;
+		rCamera.mapDimension = dimensions;
 	}
 
 	/**
@@ -103,16 +110,13 @@ public class MapsController : MonoBehaviour {
 	 * @return Returns the unit at the provided position
 	 */
 	public GameObject getUnitAtPosition (Vector2 position) {
-		return new GameObject ();
-	}
+		// Initialize the output
+		GameObject unit = null;
 
-	/**
-	 * Checks if the given position is occupied
-	 * @param position The position to check for units
-	 * @return True or not if the position is occupied
-	 */
-	private bool positionOccupied (Vector2 position) {
-		return true;
+		// Get the unit
+		unitLocations.TryGetValue (convertToIndex (position), out unit);
+
+		return unit;
 	}
 
 	/**
@@ -120,7 +124,22 @@ public class MapsController : MonoBehaviour {
 	 * @param oldPosition The original position that the unit resides in
 	 * @param newPosition The position to move the unit to
 	 */
-	public void moveUnit (Vector2 oldPosition, Vector2 newPosition) {		
+	public void moveUnit (Vector2 oldPosition, Vector2 newPosition) {
+		// Initialize the temp GameObject
+		GameObject tmp = null;
+
+		// Get the indices
+		int oldIndex = convertToIndex (oldPosition);
+		int newIndex = convertToIndex (newPosition);
+
+		// Retreive the unit from the array
+		unitLocations.TryGetValue (oldIndex, out tmp);
+
+		// Remove the old value from the array
+		unitLocations.Remove (oldIndex);
+
+		// Add the new value
+		unitLocations.Add (newIndex, tmp);
 	}
 
 	/**
@@ -128,6 +147,7 @@ public class MapsController : MonoBehaviour {
 	 * @param position The position of the unit to be removed
 	 */
 	public void destroyUnitAtPosition (Vector2 position) {
+		unitLocations.Remove (convertToIndex (position));
 	}
 
 	/**
@@ -249,28 +269,42 @@ public class MapsController : MonoBehaviour {
 	 * Gets all of the neighboring tiles within a movement range
 	 * @param location Location of unit's current position
 	 * @param range Amount that player can move current unit
-	 * @return List of available neighbors
+	 * @return Boolean value of if moves are available
 	 */
-	public void setNeighbors (Vector2 location, float range) {
+	public bool getPossibleMoves (Vector2 location, float range) {
+		// Initialize the variables
 		locationIndexes = new List<int> ();
-		neighbors = new List<Vector2> ();
+		moves = new Dictionary<Vector2, HighlightActions> ();
+
+		// Un-invert the location
+		location.y = invertY (location.y);
+
+		// Set the starting index so that it won't be highlighted
 		startingIndex = convertToIndex (location);
 
+		// Recursively check all of the neighbors
 		traverseNeighbors (location, range);
+
+		return (moves.Count > 0);
 	}
 
 	/**
-	 * Loops through the Vector2 array of locations that is generated by getNeightbors and creates highlighted tiles
-	 * @see HighlightActions
-	 * @param action The action that will take place. Used to show different tiles per what the player is about to do 
+	 * Loops through the Vector2 array of locations that is generated by getPossibleMoves and creates highlighted tiles
 	 */
-	public void highlightNeighbors (HighlightActions action) {
+	public void highlightPossibleMoves () {
+		// Initialize the new highlight for use in the loop
 		GameObject newHighlight = null;
 
-		foreach (Vector2 location in neighbors) {
-			Vector3 pos = new Vector3 (location.x, -0.59f, invertY (location.y));
+		// Get the highlight's collection object
+		GameObject highlightsCollection = GameObject.Find ("Highlights");
 
-			switch (action) {
+		// Loop through the neighborring locations and create the highlights
+		foreach (KeyValuePair<Vector2, HighlightActions> tile in moves) {
+			// Create the new position
+			Vector3 pos = new Vector3 (tile.Key.x, 0, invertY (tile.Key.y));
+
+			// Instantiate the correct tile
+			switch (tile.Value) {
 			case HighlightActions.Attack:
 				newHighlight = Instantiate (highlightAttackPrefab, pos, Quaternion.identity) as GameObject;
 				break;
@@ -282,7 +316,10 @@ public class MapsController : MonoBehaviour {
 				break;
 			}
 
-			newHighlight.transform.parent = transform;
+			// Set the parent of the highlight
+			newHighlight.transform.SetParent (highlightsCollection.transform);
+
+			// Add the highlight to the collection array
 			highlightedTiles.Add (newHighlight);
 		}
 	}
@@ -291,15 +328,95 @@ public class MapsController : MonoBehaviour {
 	 * Removes all currently highlighted tiles
 	 */
 	public void removeHighlights () {
+		// Destroy all of the highlighted tiles
 		foreach (GameObject tile in highlightedTiles) {
 			Destroy (tile);
 		}
 
+		// Clear the array
 		highlightedTiles.Clear ();
 	}
 
 	/**
-	 * Since the map is upside down, the axes needs to be flipped
+	 * Gets the HighlightActions for the provided location
+	 * @param location The Vector2 location of the tile
+	 * @return The action of the provided tile from getTileAction (Vector2, int)
+	 */
+	public HighlightActions getTileAction (Vector2 location) {
+		return getTileAction (location, convertToIndex (location));
+	}
+
+	/**
+	 * Gets the HighlightActions for the provided location
+	 * @param location The Vector2 location of the tile
+	 * @param index The integer index representation of the Vector2 location
+	 * @return The action of the provided tile
+	 */
+	public HighlightActions getTileAction (Vector2 location, int index) {
+		// Initialize the output
+		HighlightActions action = HighlightActions.Move;
+
+		// Check if there is a unit on the current tile
+		if (unitLocations.ContainsKey (index) && !gameController.populationSettings.canMoveThroughFriendlies) {
+			action = HighlightActions.Attack;
+		}
+
+		// Check if tile can be captured
+		if (tilesController.getCanCapture (getTileType (location))) {
+			action = HighlightActions.Capture;
+		}
+
+		return action;
+	}
+
+	/**
+	 * Gets the availability of lateral moves for the nav UI
+	 * @param location The location of square one
+	 * @return An associative array of the direction-boolean results for the directions
+	 */
+	public Dictionary<string, bool> getMovePossibility (Vector2 location) {
+		// Set the movement factor
+		Vector2 movementFactor = Vector2.zero;
+
+		// Invert the y of the provided location
+		location.y = invertY (location.y);
+
+		// Initialize the output
+		Dictionary<string, bool> output = new Dictionary<string, bool>();
+
+		// Create an array to loop through in order to get the directions
+		List<string> directions = new List<string> {"Left", "Right", "Up", "Down"};
+
+		// Loop through the directions array
+		foreach (string direction in directions) {
+			// Get the movement factor
+			switch (direction) {
+			case "Left":
+				movementFactor = Vector2.left;
+				break;
+			case "Right":
+				movementFactor = Vector2.right;
+				break;
+			case "Up":
+				movementFactor = Vector2.up;
+				break;
+			case "Down":
+				movementFactor = Vector2.down;
+				break;
+			}
+
+			// Check if there is a movement possibility for the new location
+			bool canMove = locationIndexes.Contains (convertToIndex (location + movementFactor));
+
+			// Add the result to the output array
+			output.Add (direction, canMove);
+		}
+
+		return output;
+	}
+
+	/**
+	 * Since the map is upside down, the y axis needs to be flipped
 	 * @param y The y location that needs to be inverted
 	 * @return The fixed location
 	 */
@@ -314,10 +431,18 @@ public class MapsController : MonoBehaviour {
 	 * @param range Remaining movement left
 	 */
 	private void traverseNeighbors (Vector2 location, float range) {
+		// Get the index of the current location
 		int index = convertToIndex (location);
-		float movementCost = tilesScript.getMovementCost (getTileType (location));
 
+		// Get the movement cost to move out of the current location
+		float movementCost = tilesController.getMovementCost (getTileType (location));
+
+		// Initialize the highlight action
+		HighlightActions action = HighlightActions.Move;
+
+		// Recursively move to the next tile if you can
 		if (canMoveFrom (location, range, movementCost)) {
+			// Take away the cost to move away from the current location
 			range -= movementCost;
 
 			// Go left
@@ -341,9 +466,10 @@ public class MapsController : MonoBehaviour {
 			}
 		}
 
+		// If the current location is not already in the locations array and is not the starting spot, then add it
 		if (!locationIndexes.Contains (index) && index != startingIndex) {
 			locationIndexes.Add (index);
-			neighbors.Add (location);
+			moves.Add (location, getTileAction (location, index));
 		}
 	}
 
@@ -371,10 +497,21 @@ public class MapsController : MonoBehaviour {
 	 * @param location Location of current tile
 	 * @param range Available movement left
 	 * @param movementCost Cost of moving from current tile
-	 * @return Boolean value of availability to move from current tile
+	 * @return Boolean value of availability to move from provided tile
 	 */
 	private bool canMoveFrom (Vector2 location, float range, float movementCost) {
+		// Initialize the variables
 		bool unitOnTile = false;
+		int index = convertToIndex (location);
+
+		// Check if the current tile has a unit on it
+		if (unitLocations.ContainsKey (index)) {
+			// Cross check with the current unit
+			if (index != startingIndex) {
+				// Cannot move past enemy
+				unitOnTile = true;
+			}
+		}
 
 		return (!unitOnTile && (range - movementCost) >= 0);
 	}
@@ -383,13 +520,23 @@ public class MapsController : MonoBehaviour {
 	 * Check to see if the current unit can be moved. Along with canMovedFrom
 	 * @see canMoveFrom
 	 * @param location Location of future tile
-	 * @return Boolean value of availability to move to provided tile
+	 * @return Boolean value of availability to move from provided tile
 	 */
 	private bool canMoveTo (Vector2 location) {
-		bool canMove = tilesScript.getCanMove (getTileType (location));
-		bool unitOnTile = false;
+		// Check if tile can be moved to
+		bool canMoveTo = (tilesController.getCanMove (getTileType (location)));
 
-		return (!unitOnTile && canMove);
+		// Check if the tile has a unit on it
+		bool unitOnTile = false;
+		if (unitLocations.ContainsKey (convertToIndex (location))) {
+			// Cross check the player and if ability to move through friendlies
+			if (getUnitAtPosition (location).transform.parent.gameObject == turnsController.currentPlayer && !gameController.populationSettings.canMoveThroughFriendlies) {
+				// Cannot move through friendlies
+				unitOnTile = true;
+			}
+		}
+
+		return (!unitOnTile && canMoveTo);
 	}
 
 	/**
