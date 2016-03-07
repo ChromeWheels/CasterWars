@@ -11,6 +11,7 @@ public class UIController : MonoBehaviour {
 	public static UIController S = null;
 
 	public GameObject[] canvasObjects = null; //!< Collection of the ui canvases
+	public GameObject unitSelectConfirmModal = null; //!< Confirmation modal for the unit select panel
 
 	private Dictionary<string, GameObject> canvases = null; //!< Associative array of the ui canvases
 	private UnitsSelectPanel unitsSelectPanel = null; //!< Local reference to the UnitsSelectPanel
@@ -31,6 +32,7 @@ public class UIController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
+		unitsSelectPanel = UnitsSelectPanel.S;
 	}
 
 	/**
@@ -48,7 +50,6 @@ public class UIController : MonoBehaviour {
 
 			switch (canvas) {
 			case "Units Select":
-				unitsSelectPanel = UnitsSelectPanel.S;
 				unitsSelectPanel.construct ();
 				break;
 			}

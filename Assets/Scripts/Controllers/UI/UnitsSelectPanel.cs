@@ -16,6 +16,12 @@ public class UnitsSelectPanel : MonoBehaviour {
 	public GameObject unitsObject = null; //!< The object that holds the units count text
 	public Texture[] unitsTextures = null; //!< The raw collection of textures for the icons on the select panels
 
+	[HideInInspector]
+	public int QueuedPopulationDiff {
+		get { return queuedPopulationDiff; }
+		private set { queuedPopulationDiff = value; }
+	} //!< Property method of int queuedPopulationDiff
+
 	private int allowedPopulation = 0; //!< The local storage of the max allowed population size
 	private List<GameObject> panels = null; //!< An array of the instantiated panels
 	private Text pointsText = null; //!< The script of the points text

@@ -44,8 +44,8 @@ public class UnitPanelController : MonoBehaviour {
 		countTxt = countObj.GetComponent<Text> ();
 
 		// Get the population cost for this unit type
-		UnitTypes unitTypesScript = UnitTypes.S;
-		populationCost = unitTypesScript.getUnitPopulationCost (unitName);
+		UnitsController unitsController = UnitsController.S;
+		populationCost = unitsController.getUnitPopulationCost (unitName);
 
 		// Set the name and unit cost text values
 		costObj.GetComponent<Text> ().text = string.Format ("Cost: {0}", populationCost);

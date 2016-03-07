@@ -9,15 +9,25 @@ public class PlayerController : MonoBehaviour {
 
 	public static PlayerController S = null;
 
-	private Players playersScript = null;
+	private Players playersCollection = null; //!< Local reference to the players collection
+	private MapsController mapsController = null; //!< Local reference to the maps controller
 
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
 	void Awake () {
 		S = this;
+	}
 
-		playersScript = Players.S;
+	/**
+	 * Runs at load time
+	 */
+	void Start () {
+		// Get the players collection controller
+		playersCollection = Players.S;
+
+		// Get the maps controller
+		mapsController = MapsController.S;
 	}
 
 	/**
@@ -29,26 +39,36 @@ public class PlayerController : MonoBehaviour {
 		GameObject newPlayer = new GameObject ();
 
 		// Assign the parent
-		newPlayer.transform.SetParent (transform);
+		newPlayer.transform.SetParent (GameObject.Find ("Players").transform);
 
 		// Name the player
-		newPlayer.name = string.Format ("Player {0}", (playersScript.players.Count + 1));
+		newPlayer.name = string.Format ("Player {0}", (playersCollection.players.Count + 1));
 
 		// Add a player script to the player
 		newPlayer.AddComponent<Player> ();
 
+		// Get the script and set the player number
+		newPlayer.GetComponent<Player> ().generalSettings.playerNumber = playersCollection.players.Count;
+
 		// Add the player to the collection
-		playersScript.players.Add (newPlayer);
+		playersCollection.players.Add (newPlayer);
 
 		return newPlayer;
 	}
 
 	/**
-	 * Creates the new units and assigns them to the provided player
-	 * @param currentPlayer The player to add the units to
-	 * @param unitCounts Associative array of which units to build and how many of them 
+	 * Retrieves the number of players
 	 */
-	public void createUnits (Player currentPlayer, Dictionary<string, int> unitCounts) {
-		
+	public int getNumPlayers () {
+		return playersCollection.players.Count;
+	}
+
+	/**
+	 * Gets the player based on the player's number
+	 * @param index The player's number
+	 * @return The player
+	 */
+	public GameObject getPlayer (int index) {
+		return playersCollection.players [index];
 	}
 }

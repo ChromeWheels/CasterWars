@@ -14,4 +14,22 @@ public class RemoteCamera : Camera {
 	public void Awake () {
 		S = this;
 	}
+
+	/**
+	 * The camera starts off in the middle of nowhere and needs to be moved to the map when it is loaded
+	 */
+	public void moveToMap () {
+		// Get the map's dimensions
+		MapsController mapScript = MapsController.S;
+
+		// Move the camera to be zoomed out at the start
+		Vector3 cameraPosition = new Vector3 (((mapScript.Dimensions.height / 2) - 0.5f), ((Mathf.Min (mapScript.Dimensions.width, mapScript.Dimensions.height) / 2) - 2), ((mapScript.Dimensions.height / 2) - 0.5f));
+		if (doScrollMove) {
+			doScrollMove = false;
+			moveTo (cameraPosition);
+			doScrollMove = true;
+		} else {
+			moveTo (cameraPosition);
+		}
+	}
 }
