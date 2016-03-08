@@ -77,5 +77,8 @@ public class NavController : MonoBehaviour {
 				button.GetComponent<Button> ().interactable = direction.Value;
 			}
 		}
+
+		// Always enable the stay put button
+		buttons [4].GetComponent<Button> ().interactable = true;
 	}
 }

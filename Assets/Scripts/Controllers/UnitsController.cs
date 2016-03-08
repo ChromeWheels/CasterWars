@@ -10,8 +10,18 @@ public class UnitsController : MonoBehaviour {
 	public static UnitsController S = null;
 
 	public float unitStartingY = -0.51f; //!< The default starting y position of the units
+	public float unitMovementDuration = 0.5f; //!< The time that it takes to move the unit one tile
 
+	private GameObject currentUnit = null; //!< The unit that is currently being controlled
+	private Vector3 oldPosition = Vector3.zero; //!< The old (original) position of the unit that is being moved
+	private Vector3 newPosition = Vector3.zero; //!< The new (destination) position of the unit that is being moved
+
+	/**
+	 * Controllers
+	 */
 	private MapsController mapsController = null; //!< Local reference to the maps controller
+	private RemoteCamera remoteCamera = null; //!< Local reference to the Remote Camera
+	private TurnsController turnsController = null; //!< Local reference to the TurnsController
 	private UnitTypes unitTypesController = null; //!< Local reference to the UnitTypes collection controller
 
 	/**
@@ -25,11 +35,53 @@ public class UnitsController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
-		unitTypesController = UnitTypes.S;
 		mapsController = MapsController.S;
+		remoteCamera = RemoteCamera.S;
+		turnsController = TurnsController.S;
+		unitTypesController = UnitTypes.S;
 
 		// Copy the settings from the parent unit types to the faction units
 		propagateOptions ();
+	}
+
+	/**
+	 * Physically move the unit on the map
+	 * @param unit The unit's game object
+	 * @param newLocation The new location that the unit will move to
+	 */
+	public void moveUnit (GameObject unit, Vector2 newLocation) {
+		// Set the unit's positions
+		oldPosition = unit.transform.position;
+		newPosition = new Vector3 (newLocation.x, oldPosition.y, newLocation.y);
+
+		// Set the current unit
+		currentUnit = unit;
+
+		// Move the unit's location in the map array
+		mapsController.moveUnit (oldPosition, newPosition);
+
+		// Start the co-routine to gracefully move the unit
+		StartCoroutine (Transition ());
+
+		// Move the remote camera to track the unit's movement
+		remoteCamera.moveTo (newLocation, unitMovementDuration);
+	}
+
+	/**
+	 * The co-routine that gracefully moves the units around the map
+	 */
+	private IEnumerator Transition () {
+		float t = 0.0f;
+
+		while (t < 1.0f) {
+			t += Time.deltaTime * (Time.timeScale / unitMovementDuration);
+
+			currentUnit.transform.position = Vector3.Lerp (oldPosition, newPosition, t);
+			yield return 0;
+		}
+
+		// Tell the TurnsController that it is done moving
+		turnsController.finishMovement ();
 	}
 
 	/**
@@ -148,7 +200,7 @@ public class UnitsController : MonoBehaviour {
 	 * @param parent The parent GameObject of the unit
 	 * @return The created unit from initUnit (string, string, Vector2, GameObject, Quaternion, GameObject)
 	 */
-		private GameObject initUnit (string faction, string type, Vector2 position, GameObject parent) {
+	private GameObject initUnit (string faction, string type, Vector2 position, GameObject parent) {
 		// Get the prefab from the unitTypes collection
 		GameObject prefab = unitTypesController.getUnitPrefab(faction, type);
 
@@ -167,7 +219,7 @@ public class UnitsController : MonoBehaviour {
 	 * @param rotation The starting rotation of the unit
 	 * @return The created unit from initUnit (string, string, Vector2, GameObject, Quaternion, GameObject)
 	 */
-		private GameObject initUnit (string faction, string type, Vector2 position, GameObject parent, Quaternion rotation) {
+	private GameObject initUnit (string faction, string type, Vector2 position, GameObject parent, Quaternion rotation) {
 		// Get the prefab from the unitTypes collection
 		GameObject prefab = unitTypesController.getUnitPrefab(faction, type);
 
@@ -183,7 +235,7 @@ public class UnitsController : MonoBehaviour {
 	 * @param prefab The prefab to create the unit from
 	 * @return The created unit from initUnit (string, string, Vector2, GameObject, Quaternion, GameObject)
 	 */
-		private GameObject initUnit (string faction, string type, Vector2 position, GameObject parent, GameObject prefab) {
+	private GameObject initUnit (string faction, string type, Vector2 position, GameObject parent, GameObject prefab) {
 		// Get default rotation from the prefab
 		Quaternion rotation = prefab.GetComponent<Unit> ().generalInformation.defaultRotation;
 

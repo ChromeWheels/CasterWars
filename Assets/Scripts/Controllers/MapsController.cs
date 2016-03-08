@@ -124,9 +124,17 @@ public class MapsController : MonoBehaviour {
 	 * @param oldPosition The original position that the unit resides in
 	 * @param newPosition The position to move the unit to
 	 */
-	public void moveUnit (Vector2 oldPosition, Vector2 newPosition) {
+	public void moveUnit (Vector3 oldPosition, Vector3 newPosition) {
 		// Initialize the temp GameObject
 		GameObject tmp = null;
+
+		// Convert the positions
+		oldPosition = convertLocation (oldPosition);
+		newPosition = convertLocation (newPosition);
+
+		// Invert the ys
+		oldPosition.y = invertY (oldPosition.y);
+		newPosition.y = invertY (newPosition.y);
 
 		// Get the indices
 		int oldIndex = convertToIndex (oldPosition);
@@ -398,10 +406,10 @@ public class MapsController : MonoBehaviour {
 				movementFactor = Vector2.right;
 				break;
 			case "Up":
-				movementFactor = Vector2.up;
+				movementFactor = Vector2.down; // Needs to be inverted due to inversion of map
 				break;
 			case "Down":
-				movementFactor = Vector2.down;
+				movementFactor = Vector2.up; // Needs to be inverted due to inversion of map
 				break;
 			}
 
@@ -413,6 +421,30 @@ public class MapsController : MonoBehaviour {
 		}
 
 		return output;
+	}
+
+	/**
+	 * Get the movement cost of the tile at the provided location
+	 * @param location Location of the requested tile
+	 * @return The movement cost of the tile
+	 */
+	public float getMovementCost (Vector3 location) {
+		// Adjust the location
+		location.z = invertY (location.z);
+
+		return tilesController.getMovementCost (getTileType (convertLocation (location)));
+	}
+
+	/**
+	 * Get the movement cost of the tile at the provided location
+	 * @param location Location of the requested tile
+	 * @return The movement cost of the tile
+	 */
+	public float getMovementCost (Vector2 location) {
+		// Adjust the location
+		location.y = invertY (location.y);
+
+		return tilesController.getMovementCost (getTileType (location));
 	}
 
 	/**
@@ -435,7 +467,7 @@ public class MapsController : MonoBehaviour {
 		int index = convertToIndex (location);
 
 		// Get the movement cost to move out of the current location
-		float movementCost = tilesController.getMovementCost (getTileType (location));
+		float movementCost = getMovementCost (location);
 
 		// Initialize the highlight action
 		HighlightActions action = HighlightActions.Move;
@@ -530,7 +562,7 @@ public class MapsController : MonoBehaviour {
 		bool unitOnTile = false;
 		if (unitLocations.ContainsKey (convertToIndex (location))) {
 			// Cross check the player and if ability to move through friendlies
-			if (getUnitAtPosition (location).transform.parent.gameObject == turnsController.currentPlayer && !gameController.populationSettings.canMoveThroughFriendlies) {
+			if (getUnitAtPosition (location).transform.parent.gameObject == turnsController.getCurrentPlayer () && !gameController.populationSettings.canMoveThroughFriendlies) {
 				// Cannot move through friendlies
 				unitOnTile = true;
 			}
@@ -546,5 +578,14 @@ public class MapsController : MonoBehaviour {
 	 */
 	private int getTileType (Vector2 location) {
 		return mapScript.tiles [(int)location.y, (int)location.x] - 1;
+	}
+
+	/**
+	 * Converts a Vector3 location to a Vector2 location
+	 * @param location The Vector3 location
+	 * @return Returns the Vector2 conversion of the provided location
+	 */
+	private Vector2 convertLocation (Vector3 location) {
+		return new Vector2 (location.x, location.z);
 	}
 }

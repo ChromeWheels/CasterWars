@@ -8,19 +8,30 @@ public class TurnsController : MonoBehaviour {
 
 	public static TurnsController S = null;
 
-	[HideInInspector]
-	public GameObject currentPlayer = null; //!< Local copy of the current player
-
-	private int currentPlayerIndex = 0; //!< The array index of the current player
-	private Player playerScript = null; //!< The script of the current player
-	private GameObject currentUnit = null; //!< The current unit's game object
-	private Unit unitScript = null; //!< The script of the current unit
-	private int currentUnitNumber = 0; //!< The array index of the current unit
 	private float movementLeft = 0; //!< The amount of movement that is left for the current unit
-	private RemoteCamera remoteCamera = null; //!< The local reference to the remote camera's script
+
+	/**
+	 * The Current Player
+	 */
+	private GameObject currentPlayer = null; //!< Local copy of the current player
+	private Player playerScript = null; //!< The script of the current player
+	private int currentPlayerIndex = 0; //!< The array index of the current player
+
+	/**
+	 * The Current Unit
+	 */
+	private GameObject currentUnit = null; //!< The current unit's game object
+	private int currentUnitNumber = 0; //!< The array index of the current unit
+	private Unit unitScript = null; //!< The script of the current unit
+
+	/**
+	 * Controllers
+	 */
 	private MapsController mapsController = null; //!< The local reference to the maps controller
-	private PlayerController playerController = null; //!< The local reference to the player's controller
 	private NavController navController = null; //!< The local reference to the nav controller
+	private PlayerController playerController = null; //!< The local reference to the player's controller
+	private RemoteCamera remoteCamera = null; //!< The local reference to the remote camera's script
+	private UnitsController unitsController = null; //!< The local reference to the unit's controller
 
 	/**
 	 * Called when the script is loaded, before the game starts
@@ -33,10 +44,19 @@ public class TurnsController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
-		remoteCamera = RemoteCamera.S;
 		mapsController = MapsController.S;
-		playerController = PlayerController.S;
 		navController = NavController.S;
+		playerController = PlayerController.S;
+		remoteCamera = RemoteCamera.S;
+		unitsController = UnitsController.S;
+	}
+
+	/**
+	 * Gets the current player
+	 * @return the GameObject of the current player
+	 */
+	public GameObject getCurrentPlayer () {
+		return currentPlayer;
 	}
 
 	/**
@@ -93,7 +113,7 @@ public class TurnsController : MonoBehaviour {
 			healUnits ();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 
 			// Start the turn off with the commander
-			initUnitTurn (3);
+			initUnitTurn (0);
 		} else {
 			// Try to get the player again
 			startTurn (currentPlayerIndex);
@@ -106,7 +126,7 @@ public class TurnsController : MonoBehaviour {
 	 */
 	public void initUnitTurn (int unitNumber) {
 		// Ensure that the selected unit is inside the bounds
-		if (unitNumber <= playerScript.units.Count) {
+		if (unitNumber < playerScript.units.Count) {
 			// Set the current unit's number
 			currentUnitNumber = unitNumber;
 
@@ -116,6 +136,9 @@ public class TurnsController : MonoBehaviour {
 
 			// Move the camera to the unit
 			remoteCamera.moveTo (convertLocation (currentUnit.transform.position));
+
+			// Get the movement alloted for this unit
+			movementLeft = unitScript.turnSettings.movementAlloted;
 
 			// Start the movement
 			processMoves ();
@@ -130,6 +153,9 @@ public class TurnsController : MonoBehaviour {
 	 * @param direction The direction to move the unit
 	 */
 	public void doMoveCurrentUnit (string direction) {
+		// Clear the map of highlights
+		mapsController.removeHighlights ();
+
 		// Get the current location
 		Vector2 currLocation = convertLocation (currentUnit.transform.position);
 
@@ -155,6 +181,29 @@ public class TurnsController : MonoBehaviour {
 
 		// Get the action before we move
 		HighlightActions action = mapsController.getTileAction (newLocation);
+
+		// Do the appropriate action
+		switch (action) {
+		case HighlightActions.Attack:
+			break;
+		case HighlightActions.Capture:
+			break;
+		case HighlightActions.Move:
+			// Subtract the cost of the just finished move
+			movementLeft -= mapsController.getMovementCost (newLocation);
+				
+			// Move the unit
+			unitsController.moveUnit (currentUnit, newLocation);
+			break;
+		}
+	}
+
+	/**
+	 * Function that finishes the movement logic for the unit
+	 */
+	public void finishMovement () {
+		// Start the movement
+		processMoves ();
 	}
 
 	/**
@@ -167,9 +216,6 @@ public class TurnsController : MonoBehaviour {
 	 * Logic for getting and processing available moves
 	 */
 	private void processMoves () {
-		// Get the movement alloted for this unit
-		movementLeft = unitScript.turnSettings.movementAlloted;
-
 		// Get the availability of possible moves
 		if (!mapsController.getPossibleMoves (convertLocation (currentUnit.transform.position), movementLeft)) {
 			// No moves available, move to the next unit

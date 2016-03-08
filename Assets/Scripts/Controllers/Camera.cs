@@ -23,37 +23,74 @@ public class Camera : MonoBehaviour {
 
 	private float duration = 0; //!< This is used to store the duration for the camera to move
 	private Vector3 target = Vector3.zero; //!< This is used to store the new location that the camera must move towards
+	private bool trackMode = false; //!< The boolean setting that disables the calculation of duration if true
 
 	/**
-	 * Move the camera to the given Vector3 coordinates
-	 * @param coords The coordinates for the camera to move to
+	 * The function that moves the camera
+	 * 
+	 * NOTE: Use one of the moveTo constructor overloads
 	 */
-	public void moveTo (Vector3 coords) {
-		target = keepInBounds (coords);
+	private void moveTo () {
+		// Ensure that the camera stays in bounds
+		target = keepInBounds (target);
 
+		// Check if the camera gets scrolled or not
 		if (doScrollMove) {
-			setTransitionDuration ();
+			// Check if the trackMode is off
+			if (!trackMode) {
+				// It is off, calculate the duration
+				setTransitionDuration ();
+			}
 
+			// Start the function that moves it
 			StartCoroutine (Transition ());
 		} else {
+			// Jump the camera over to the new location
 			transform.position = target;
 		}
 	}
 
 	/**
-	* Move the camera to the given Vector2 coordinates using x and z
-	* @param coords The coordinates for the camera to move to
-	*/
+	 * Constructor overload of the moveTo function
+	 * @param coords The coordinates for the camera to move to
+	 */
+	public void moveTo (Vector3 coords) {
+		// Set the target to move the camera to
+		target = coords;
+
+		// Call the actual function to move the camera
+		moveTo ();
+	}
+
+	/**
+	 * Constructor overload of the moveTo function
+	 * @param coords The coordinates for the camera to move to
+	 */
 	public void moveTo (Vector2 coords) {
-		target = keepInBounds (new Vector3 (coords.x, targetY, coords.y));
+		// Set the target to move the camera to
+		target = new Vector3 (coords.x, targetY, coords.y);
 
-		if (doScrollMove) {
-			setTransitionDuration ();
+		// Call the actual function to move the camera
+		moveTo ();
+	}
 
-			StartCoroutine (Transition ());
-		} else {
-			transform.position = target;
-		}
+	/**
+	 * Constructor overload of the moveTo function
+	 * @param coords The coordinates for the camera to move to
+	 * @param duration The duration that the unit will move. Used to keep pace with unit's movement
+	 */
+	public void moveTo (Vector2 coords, float unitMovementDuration) {
+		// Set the target to move the camera to
+		target = new Vector3 (coords.x, targetY, coords.y);
+
+		// Turn trackMode on
+		trackMode = true;
+
+		// Set the duration
+		duration = unitMovementDuration;
+
+		// Call the actual function to move the camera
+		moveTo ();
 	}
 
 	/**
@@ -69,18 +106,24 @@ public class Camera : MonoBehaviour {
 			transform.position = Vector3.Lerp (startingPos, target, t);
 			yield return 0;
 		}
+
+		// Ensure that the trackMode is always reset back to off after the movement is over
+		trackMode = false;
 	}
 
 	/**
 	 * Function that calculates the distance from the camera to the target.
 	 */
 	private void setTransitionDuration () {
+		// Set the positions
 		Vector3 start = transform.position;
 		Vector3 end = target;
 
+		// Calculate the distances
 		float x = Mathf.Pow (start.x - end.x, 2);
 		float y = Mathf.Pow (start.y - end.y, 2);
 
+		// Set the duration
 		duration = (moveDurationPerTile * Mathf.Sqrt (x + y));
 	}
 

@@ -32,7 +32,6 @@ public class UIController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
-		unitsSelectPanel = UnitsSelectPanel.S;
 	}
 
 	/**
@@ -50,6 +49,7 @@ public class UIController : MonoBehaviour {
 
 			switch (canvas) {
 			case "Units Select":
+				unitsSelectPanel = UnitsSelectPanel.S;
 				unitsSelectPanel.construct ();
 				break;
 			}

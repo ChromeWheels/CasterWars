@@ -8,7 +8,6 @@ using System.Collections.Generic;
 public class Game : MonoBehaviour {
 
 	//TODO: unit creation during turn
-	//TODO: Unit movement
 	//TODO: Unit attack
 	//TODO: Commander ability
 	//TODO: Specials
@@ -28,12 +27,19 @@ public class Game : MonoBehaviour {
 	public DevTools devTools = null; //!< Settings for dev testing. Only used if devMode is enabled
 	public PopulationSettings populationSettings = null; //!< Class to hold the population settings
 
+	/**
+	 * Current Player
+	 */
 	private GameObject currentPlayer = null; //!< Local reference to the player object for the current player
 	private Player currentPlayerScript = null; //!< Local reference to the Player script for the current player
+
+	/**
+	 * Controllers
+	 */
 	private PlayerController playerController = null; //!< Local reference to the Players collections script
+	private TurnsController turnsController = null; //!< Local reference to the turns controller
 	private UIController uiScript = null; //!< Local reference to the UIController script
 	private UnitsController unitsController = null; //!< Local reference to the units controller
-	private TurnsController turnsController = null; //!< Local reference to the turns controller
 
 	/**
 	 * Called when the script is loaded, before the game starts
@@ -46,10 +52,10 @@ public class Game : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
-		unitsController = UnitsController.S;
-		uiScript = UIController.S;
 		playerController = PlayerController.S;
 		turnsController = TurnsController.S;
+		unitsController = UnitsController.S;
+		uiScript = UIController.S;
 	}
 
 
