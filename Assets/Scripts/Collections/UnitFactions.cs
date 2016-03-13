@@ -3,11 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 
 /**
- * Collections holder of the available factions
+ * Collections holder of the available factions for the units
  */
-public class Factions : MonoBehaviour {
-
-	public static Factions S = null;
+public class UnitFactions : MonoBehaviour {
 
 	public FactionsList[] factions = null; //!< List of factions names and prefabs
 	public Dictionary<string, GameObject> units = null; //!< Associative array of the units
@@ -16,8 +14,6 @@ public class Factions : MonoBehaviour {
 	 * Called when the script is loaded, before the game starts
 	 */
 	void Awake() {
-		S = this;
-
 		// Create an associative array of the units by faction
 		units = new Dictionary<string, GameObject>();
 		foreach (FactionsList faction in factions) {

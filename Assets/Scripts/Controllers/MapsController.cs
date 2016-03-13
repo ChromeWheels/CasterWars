@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -12,6 +13,7 @@ public class MapsController : MonoBehaviour {
 	public GameObject highlightAttackPrefab = null; //!< The GameObject that is used for highlighting the available tiles that can be attacked
 	public GameObject highlightCapturePrefab = null; //!< The GameObject that is used for highlighting the available tiles that can be captured
 	public GameObject highlightMovePrefab = null; //!< The GameObject that is used for highlighting the available tiles that can be moved to
+	public float highlightYPosition = -0.51f; //!< The vertical offset of the highlights
 
 	[HideInInspector]
 	public Dictionary<Vector2, HighlightActions> Moves {
@@ -24,16 +26,21 @@ public class MapsController : MonoBehaviour {
 		private set { dimensions = value; }
 	} //!< Property method of Dimensions dimensions
 
+	private float offset = 0; //!< The offset of the map
 	private Dimensions dimensions = null; //!< Local copy of the map's dimensions
 	private List<GameObject> highlightedTiles = null; //!< Temporary list of highlighted tiles
 	private List<int> locationIndexes = null; //!< Temporary list of unique neighbor locations. Used to prevent duplicate locations in List<Vector2> locations
-	private Map mapScript = null; //!< Local reference to the Map's script
 	private Dictionary<Vector2, HighlightActions> moves = null; //!< Temporary list of possible moves
-	private TilesController tilesController = null; //!< Local reference to the TilesController
 	private int startingIndex = 0; //!< Variable used when getting neighbors to prevent adding the starting tile to poosible neighbors
 	private Dictionary<int, GameObject> unitLocations = null; //!< Associative array of units and their locations on the map
-	private TurnsController turnsController = null; //!< Local reference to the turns controller
+
+	/**
+	 * Controllers
+	 */
 	private Game gameController = null; //!< Local reference to the game's controller
+	private Map mapScript = null; //!< Local reference to the Map's script
+	private TilesController tilesController = null; //!< Local reference to the TilesController
+	private TurnsController turnsController = null; //!< Local reference to the turns controller
 
 	/**
 	 * Called when the script is loaded, before the game starts
@@ -81,12 +88,11 @@ public class MapsController : MonoBehaviour {
 		// Get the dimensions
 		dimensions = mapScript.dimensions;
 
-		// Move the map into place
-		map.transform.position = new Vector3 ((mapScript.dimensions.width / 2) - 0.5f, map.transform.position.y, (mapScript.dimensions.height / 2) - 0.5f);
+		// Resize the map
+		map.transform.localScale = new Vector3 ((dimensions.width * 0.10f), 1, (dimensions.height * 0.10f));
 
-		// Give the map's dimensions to the remote camera
-		RemoteCamera rCamera = RemoteCamera.S;
-		rCamera.mapDimension = dimensions;
+		// Move the map into place
+		map.transform.position = new Vector3 (((mapScript.dimensions.width / 2) - offset), map.transform.position.y, ((mapScript.dimensions.height / 2) - offset));
 	}
 
 	/**
@@ -309,7 +315,7 @@ public class MapsController : MonoBehaviour {
 		// Loop through the neighborring locations and create the highlights
 		foreach (KeyValuePair<Vector2, HighlightActions> tile in moves) {
 			// Create the new position
-			Vector3 pos = new Vector3 (tile.Key.x, 0, invertY (tile.Key.y));
+			Vector3 pos = new Vector3 (tile.Key.x, highlightYPosition, invertY (tile.Key.y));
 
 			// Instantiate the correct tile
 			switch (tile.Value) {
@@ -448,11 +454,30 @@ public class MapsController : MonoBehaviour {
 	}
 
 	/**
+	 * Generated a unique index to prevent duplicate array entries
+	 * @param location Location of the tile
+	 * @return A unique index integer
+	 */
+	public int convertToIndex (Vector2 location) {
+		return (int) (location.x + (dimensions.width * location.y));
+	}
+
+	/**
+	 * Generated a unique index to prevent duplicate array entries
+	 * @param x Location of the tile along the x axis
+	 * @param y Location of the tile along the y axis
+	 * @return A unique index integer
+	 */
+	public int convertToIndex (float x, float y) {
+		return (int) (x + (dimensions.width * y));
+	}
+
+	/**
 	 * Since the map is upside down, the y axis needs to be flipped
 	 * @param y The y location that needs to be inverted
 	 * @return The fixed location
 	 */
-	private float invertY (float y) {
+	public float invertY (float y) {
 		return (dimensions.height - 1) - y;
 	}
 
@@ -506,24 +531,6 @@ public class MapsController : MonoBehaviour {
 	}
 
 	/**
-	 * Generated a unique index to prevent duplicate array entries
-	 * @param location Location of the tile
-	 * @return A unique index integer
-	 */
-	private int convertToIndex (Vector2 location) {
-		return (int) (location.x + (dimensions.width * location.y));
-	}
-	/**
-	 * Generated a unique index to prevent duplicate array entries
-	 * @param x Location of the tile along the x axis
-	 * @param y Location of the tile along the y axis
-	 * @return A unique index integer
-	 */
-	private int convertToIndex (float x, float y) {
-		return (int) (x + (dimensions.width * y));
-	}
-
-	/**
 	 * Check to see if the current unit can be moved. Along with canMovedTo
 	 * @see canMoveTo
 	 * @param location Location of current tile
@@ -555,16 +562,31 @@ public class MapsController : MonoBehaviour {
 	 * @return Boolean value of availability to move from provided tile
 	 */
 	private bool canMoveTo (Vector2 location) {
-		// Check if tile can be moved to
-		bool canMoveTo = (tilesController.getCanMove (getTileType (location)));
-
-		// Check if the tile has a unit on it
+		// Initialize the output
+		bool canMoveTo = false;
 		bool unitOnTile = false;
-		if (unitLocations.ContainsKey (convertToIndex (location))) {
-			// Cross check the player and if ability to move through friendlies
-			if (getUnitAtPosition (location).transform.parent.gameObject == turnsController.getCurrentPlayer () && !gameController.populationSettings.canMoveThroughFriendlies) {
-				// Cannot move through friendlies
-				unitOnTile = true;
+
+		// Ensure that the current tile is in bounds
+		if (
+			location != null // Ensure that the location is not null
+			&& (location.x >= 0) // Check that the x is not less than 0
+			&& (location.x < (dimensions.width - 1))// Check that the x is not greater than the map's width
+			&& (location.y >= 0) // Check that the y is not less than 0
+			&& (location.y < (dimensions.height - 1)) // Check that the y is not greater than the map's height
+		) {
+			// Get the index of the tile
+			int index = convertToIndex (location);
+
+			// Check if tile can be moved to
+			canMoveTo = (tilesController.getCanMove (getTileType (location), index));
+
+			// Check if the tile has a unit on it
+			if (unitLocations.ContainsKey (index)) {
+				// Cross check the player and if ability to move through friendlies
+				if (getUnitAtPosition (location).transform.parent.gameObject == turnsController.getCurrentPlayer () && !gameController.populationSettings.canMoveThroughFriendlies) {
+					// Cannot move through friendlies
+					unitOnTile = true;
+				}
 			}
 		}
 
@@ -577,7 +599,12 @@ public class MapsController : MonoBehaviour {
 	 * @return The type of the provided tile
 	 */
 	private int getTileType (Vector2 location) {
-		return mapScript.tiles [(int)location.y, (int)location.x] - 1;
+		try {
+			return mapScript.tiles [(int)location.y, (int)location.x] - 1;
+		} catch (Exception e) {
+			Debug.Log (location);
+			return 0;
+		}
 	}
 
 	/**

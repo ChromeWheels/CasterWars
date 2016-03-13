@@ -34,6 +34,11 @@ public class UnitsSelectPanel : MonoBehaviour {
 	private Text unitsText = null; //!< The text script of the units object
 
 	/**
+	 * Controllers
+	 */
+	private PlayerController playerController = null; //!< Local reference to the PlayerController
+
+	/**
 	 * Called when the script is loaded, before the game starts
 	 */
 	void Awake () {
@@ -46,6 +51,13 @@ public class UnitsSelectPanel : MonoBehaviour {
 		foreach (Texture unit in unitsTextures) {
 			unitTextures.Add (unit.name, unit);
 		}
+	}
+
+	/**
+	 * Runs at load time
+	 */
+	void Start () {
+		playerController = PlayerController.S;
 	}
 
 	/**
@@ -108,10 +120,10 @@ public class UnitsSelectPanel : MonoBehaviour {
 
 	/**
 	 * Gets the queued counts from the unit panels and returns it in an associative array
-	 * @param devMode Generates random unit counts if set to true
+	 * @param playerNumber The player's array index
 	 * @return An associative array of the queued units count
 	 */
-	public Dictionary<string, int> getUnitCounts (bool devMode) {
+	public Dictionary<string, int> getUnitCounts (int playerNumber) {
 		// Initialize the array
 		unitPopulations = new Dictionary<string, int> ();
 
@@ -121,7 +133,10 @@ public class UnitsSelectPanel : MonoBehaviour {
 			UnitPanelController script = unit.GetComponent<UnitPanelController> ();
 
 			// Add the unit to the population array
-			unitPopulations.Add(script.name, (devMode) ? Random.Range (0, 3) : script.populationCount);
+			unitPopulations.Add(script.name, script.populationCount);
+
+			// Update the player's points available
+			playerController.updatePoints (playerNumber, script.populationCount, false);
 		}
 
 		return unitPopulations;

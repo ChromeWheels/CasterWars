@@ -41,7 +41,7 @@ public class UnitTypes : MonoBehaviour {
 		types.TryGetValue(unitType, out unitHolder);
 
 		// Get the unit prefab from the faction
-		unitHolder.GetComponent<Factions> ().units.TryGetValue (faction, out unitPrefab);
+		unitHolder.GetComponent<UnitFactions> ().units.TryGetValue (faction, out unitPrefab);
 
 		return unitPrefab;
 	}

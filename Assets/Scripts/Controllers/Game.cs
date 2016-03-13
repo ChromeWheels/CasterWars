@@ -63,14 +63,35 @@ public class Game : MonoBehaviour {
 	 * Function that initilizes things once the phone has started a cast
 	 */
 	public void doCastScreen () {
-		// Create the player
-		doCreatePlayer ();
-
 		if (devTools.devMode) {
-			doSelectFaction ("Bear");
+			FactionsCollection factionsCollection = FactionsCollection.S;
+
+			for (int i = 0; i < devTools.numPlayers; i++) {
+				GameObject newPlayer = doCreatePlayer ();
+				Player playerScript = newPlayer.GetComponent<Player> ();
+
+				string faction = factionsCollection.factionNames [i];
+				playerController.doSelectFaction (i, faction);
+
+				if (i == 0) {
+					currentPlayer = newPlayer;
+					currentPlayerScript = playerScript;
+				}
+			}
+
 			doStartGame ();
+
+			TilesController tilesController = TilesController.S;
+			tilesController.disableTile (new Vector2 (19, 11), 3);
+
 			uiScript.showCanvas ("Nav");
 		} else {
+			// Create the player
+			currentPlayer = doCreatePlayer ();
+
+			// Set the player script
+			currentPlayerScript = currentPlayer.GetComponent<Player> ();
+
 			// Change to the next step on the phone
 			uiScript.showCanvas ("Factions Select");
 		}
@@ -93,21 +114,24 @@ public class Game : MonoBehaviour {
 		MapsController mapsController = MapsController.S;
 
 		// Choose the map based on the number of players
+		int mapSize = 0;
 		switch (playerController.getNumPlayers ()) {
 		case 2:
 			mapsController.construct (1);
+			mapSize = 2;
 			break;
 		case 3:
 			mapsController.construct (2);
+			mapSize = 3;
 			break;
-		case 1:
 		case 4:
+			mapSize = 4;
 			mapsController.construct (0);
 			break;
 		}
 
 		// Create the units
-		doCreateUnitsAtStart ();
+		unitsController.doCreateUnitsAtStart ();
 
 		// Move the camera to the map, wait for 2 seconds and then start player 1's turn
 		RemoteCamera cam = RemoteCamera.S;
@@ -126,9 +150,8 @@ public class Game : MonoBehaviour {
 	/**
 	 * Creates the player
 	 */
-	public void doCreatePlayer () {
-		currentPlayer = playerController.createPlayer ();
-		currentPlayerScript = currentPlayer.GetComponent<Player> ();
+	public GameObject doCreatePlayer () {
+		return playerController.createPlayer ();
 	}
 
 	/**
@@ -136,57 +159,6 @@ public class Game : MonoBehaviour {
 	 */
 	public void doDestroyPlayer () {
 		Destroy (currentPlayer);
-	}
-
-	/**
-	 * Function that handles the click of the faction select buttons
-	 * @param faction The name of the faction that the player has selected
-	 */
-	public void doSelectFaction (string faction) {
-		// Assign the faction
-		currentPlayerScript.generalSettings.factionName = faction;
-
-		if (!devTools.devMode) {
-			// Move to next screen
-			uiScript.showCanvas ("Units Select");
-		}
-	}
-
-	/**
-	 * Creates the appropriate functions and slaps them on the map in the correct positions
-	 */
-	public void doCreateUnitsAtStart () {
-		// Initialize the returned vector
-		Vector2 initLocation = Vector2.zero;
-
-		// Initialize the unitCounts array
-		Dictionary<string, int> unitCounts = null;
-
-		// Do this only if devMode is enabled
-		if (devTools.devMode) {
-			// Get the UnitTypes script and grab the unit types array
-			Dictionary<string, GameObject> unitTypes = UnitTypes.S.types;
-
-			// Reset the array
-			unitCounts = new Dictionary<string, int> ();
-
-			// Loop through the unitTypes and set a population count
-			foreach (KeyValuePair<string, GameObject> type in unitTypes) {
-				// Skip the commander type
-				if (type.Key.CompareTo ("Commander") == 0) {
-					continue;
-				}
-
-				unitCounts.Add (type.Key, devTools.numUnits);
-			}
-		} else {
-			// Get the unit counts
-			UnitsSelectPanel unitsSelect = UnitsSelectPanel.S;
-			unitCounts = unitsSelect.getUnitCounts (devTools.devMode);
-		}
-
-		// Send the array to the units controller to create the units and return the returned vector
-		unitsController.createUnits (currentPlayer, unitCounts);
 	}
 
 	/**

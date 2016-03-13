@@ -22,6 +22,8 @@ public class Camera : MonoBehaviour {
 	public Dimensions mapDimension = null; //!< Local copy of the map's dimensions
 
 	private float duration = 0; //!< This is used to store the duration for the camera to move
+	private bool isInitial = false; //!< If initial calling, do not keep in bounds
+	private bool isMoveToUnit = false; //!< If true, the camera will call back to the TurnsController.endMoveCamera()
 	private Vector3 target = Vector3.zero; //!< This is used to store the new location that the camera must move towards
 	private bool trackMode = false; //!< The boolean setting that disables the calculation of duration if true
 
@@ -32,7 +34,7 @@ public class Camera : MonoBehaviour {
 	 */
 	private void moveTo () {
 		// Ensure that the camera stays in bounds
-		target = keepInBounds (target);
+		target = (isInitial) ? target : keepInBounds (target);
 
 		// Check if the camera gets scrolled or not
 		if (doScrollMove) {
@@ -65,6 +67,22 @@ public class Camera : MonoBehaviour {
 	/**
 	 * Constructor overload of the moveTo function
 	 * @param coords The coordinates for the camera to move to
+	 * @param initial The boolean representation of initial loading
+	 */
+	public void moveTo (Vector3 coords, bool initial) {
+		// Set the target to move the camera to
+		target = coords;
+
+		// Set the boolean value of being initial camera movement
+		isInitial = initial;
+
+		// Call the actual function to move the camera
+		moveTo ();
+	}
+
+	/**
+	 * Constructor overload of the moveTo function
+	 * @param coords The coordinates for the camera to move to
 	 */
 	public void moveTo (Vector2 coords) {
 		// Set the target to move the camera to
@@ -77,7 +95,23 @@ public class Camera : MonoBehaviour {
 	/**
 	 * Constructor overload of the moveTo function
 	 * @param coords The coordinates for the camera to move to
-	 * @param duration The duration that the unit will move. Used to keep pace with unit's movement
+	 * @param moveToUnit If true, the camera will call back to the TurnsController.endMoveCamera()
+	 */
+	public void moveTo (Vector2 coords, bool moveToUnit) {
+		// Set the target to move the camera to
+		target = new Vector3 (coords.x, targetY, coords.y);
+
+		// Set isMoveToUnit
+		isMoveToUnit = moveToUnit;
+
+		// Call the actual function to move the camera
+		moveTo ();
+	}
+
+	/**
+	 * Constructor overload of the moveTo function
+	 * @param coords The coordinates for the camera to move to
+	 * @param unitMovementDuration The duration that the unit will move. Used to keep pace with unit's movement
 	 */
 	public void moveTo (Vector2 coords, float unitMovementDuration) {
 		// Set the target to move the camera to
@@ -109,6 +143,18 @@ public class Camera : MonoBehaviour {
 
 		// Ensure that the trackMode is always reset back to off after the movement is over
 		trackMode = false;
+
+		// Ensure that isInitial gets reset afterwards
+		isInitial = false;
+
+		if (isMoveToUnit) {
+			// Reset isMoveToUnit
+			isMoveToUnit = false;
+
+			// If isMoveToUnit, tell the UnitsController that the movement is done
+			TurnsController turnsController = TurnsController.S;
+			turnsController.endMoveCamera ();
+		}
 	}
 
 	/**
@@ -133,6 +179,12 @@ public class Camera : MonoBehaviour {
 	 * @return The adjusted Vector3 coordinates of the target
 	 */
 	private Vector3 keepInBounds (Vector3 location) {
+		// Get the map's dimensions if it is null
+		if (mapDimension == null || mapDimension.width == 0) {
+			MapsController mapsController = MapsController.S;
+			mapDimension = mapsController.Dimensions;
+		}
+
 		// Generate the min/max x and z distance
 		float minX = ((1.022f * location.y) + (-0.36f)); // y = mx+b Where m=1.022, x=location.y, b=-0.36
 		float minZ = ((0.57f * location.y) + (-0.37f)); // y = mx+b Where m=0.57, x=location.y, b=-0.37

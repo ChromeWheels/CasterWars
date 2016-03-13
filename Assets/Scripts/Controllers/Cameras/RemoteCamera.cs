@@ -8,6 +8,8 @@ public class RemoteCamera : Camera {
 
 	public static RemoteCamera S = null;
 
+	private float offset = 0; //!< The offset of the camera
+
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
@@ -21,15 +23,22 @@ public class RemoteCamera : Camera {
 	public void moveToMap () {
 		// Get the map's dimensions
 		MapsController mapScript = MapsController.S;
+		Dimensions dimensions = mapScript.Dimensions;
+
+		// Get the y distance and ensure that it is not too close
+		float y = (Mathf.Min (dimensions.width, dimensions.height) / 2);
+		y = (y < 18) ? 18 : y;
+
+		// Set the new position
+		Vector3 cameraPosition = new Vector3 (((dimensions.width / 2) - offset), y, ((dimensions.height / 2) - offset));
 
 		// Move the camera to be zoomed out at the start
-		Vector3 cameraPosition = new Vector3 (((mapScript.Dimensions.height / 2) - 0.5f), ((Mathf.Min (mapScript.Dimensions.width, mapScript.Dimensions.height) / 2) - 2), ((mapScript.Dimensions.height / 2) - 0.5f));
 		if (doScrollMove) {
 			doScrollMove = false;
-			moveTo (cameraPosition);
+			moveTo (cameraPosition, true);
 			doScrollMove = true;
 		} else {
-			moveTo (cameraPosition);
+			moveTo (cameraPosition, true);
 		}
 	}
 }

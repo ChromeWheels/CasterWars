@@ -15,6 +15,8 @@ public class Player : MonoBehaviour {
 	public List<GameObject> units = null; //!< The array of units that belongs to the player
 	[HideInInspector]
 	public bool commanderIsAlive = true; //!< Boolean value of if the commander is alive or not
+	[HideInInspector]
+	public int remainingPoints = 0; //!< The current points available for the player to build units
 
 	/**
 	 * Called when the script is loaded, before the game starts

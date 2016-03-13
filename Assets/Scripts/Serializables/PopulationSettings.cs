@@ -1,4 +1,6 @@
-﻿/**
+﻿using UnityEngine;
+
+/**
  * All of the settings related to the population
  */
 [System.Serializable]

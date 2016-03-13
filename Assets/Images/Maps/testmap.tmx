@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="21" height="21" tilewidth="32" tileheight="32" nextobjectid="1">
+ <tileset firstgid="1" name="Sprites" tilewidth="32" tileheight="32" tilecount="23" columns="0">
+  <tile id="0">
+   <image width="32" height="32" source="../Tiles/Bridge.png"/>
+  </tile>
+  <tile id="1">
+   <image width="32" height="32" source="../Tiles/City.png"/>
+  </tile>
+  <tile id="2">
+   <image width="32" height="32" source="../Tiles/Forest.png"/>
+  </tile>
+  <tile id="3">
+   <image width="32" height="32" source="../Tiles/Grass.png"/>
+  </tile>
+  <tile id="4">
+   <image width="32" height="32" source="../Tiles/Hills.png"/>
+  </tile>
+  <tile id="5">
+   <image width="32" height="32" source="../Tiles/Mountains.png"/>
+  </tile>
+  <tile id="6">
+   <image width="32" height="32" source="../Tiles/Road.png"/>
+  </tile>
+  <tile id="7">
+   <image width="32" height="32" source="../Tiles/Water.png"/>
+  </tile>
+  <tile id="8">
+   <image width="32" height="32" source="../Tiles/Resources.png"/>
+  </tile>
+  <tile id="9">
+   <image width="32" height="32" source="../Tiles/Camp.png"/>
+  </tile>
+  <tile id="10">
+   <image width="32" height="32" source="../Tiles/Temple.png"/>
+  </tile>
+  <tile id="11">
+   <image width="32" height="32" source="../Tiles/Bridge-Elbow.png"/>
+  </tile>
+  <tile id="12">
+   <image width="32" height="32" source="../Tiles/Bridge-T.png"/>
+  </tile>
+  <tile id="13">
+   <image width="32" height="32" source="../Tiles/Road-Elbow.png"/>
+  </tile>
+  <tile id="14">
+   <image width="32" height="32" source="../Tiles/Road-T.png"/>
+  </tile>
+  <tile id="17">
+   <properties>
+    <property name="rotationY" value="90"/>
+    <property name="tile" value="6"/>
+   </properties>
+   <image width="32" height="32" source="../Tiles/Road90.png"/>
+  </tile>
+  <tile id="18">
+   <properties>
+    <property name="rotationY" value="-90"/>
+    <property name="tile" value="13"/>
+   </properties>
+   <image width="32" height="32" source="../Tiles/Road-Elbow-90.png"/>
+  </tile>
+  <tile id="19">
+   <properties>
+    <property name="rotationY" value="90"/>
+    <property name="tile" value="13"/>
+   </properties>
+   <image width="32" height="32" source="../Tiles/Road-Elbow90.png"/>
+  </tile>
+  <tile id="20">
+   <properties>
+    <property name="rotationY" value="180"/>
+    <property name="tile" value="13"/>
+   </properties>
+   <image width="32" height="32" source="../Tiles/Road-Elbow180.png"/>
+  </tile>
+  <tile id="21">
+   <properties>
+    <property name="rotationY" value="-90"/>
+    <property name="tile" value="14"/>
+   </properties>
+   <image width="32" height="32" source="../Tiles/Road-T-90.png"/>
+  </tile>
+  <tile id="22">
+   <properties>
+    <property name="rotationY" value="90"/>
+    <property name="tile" value="14"/>
+   </properties>
+   <image width="32" height="32" source="../Tiles/Road-T90.png"/>
+  </tile>
+  <tile id="23">
+   <properties>
+    <property name="rotationY" value="180"/>
+    <property name="tile" value="14"/>
+   </properties>
+   <image width="32" height="32" source="../Tiles/Road-T180.png"/>
+  </tile>
+  <tile id="24">
+   <properties>
+    <property name="rotationY" value="90"/>
+    <property name="tile" value="0"/>
+   </properties>
+   <image width="32" height="32" source="../Tiles/Bridge90.png"/>
+  </tile>
+ </tileset>
+ <tileset firstgid="26" name="Road-90" tilewidth="1" tileheight="1" tilecount="0" columns="0"/>
+ <layer name="Tile Layer 1" width="21" height="21">
+  <data>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="21"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="24"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="19"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="18"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="18"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="18"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="11"/>
+   <tile gid="8"/>
+   <tile gid="25"/>
+   <tile gid="8"/>
+   <tile gid="11"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="11"/>
+   <tile gid="8"/>
+   <tile gid="25"/>
+   <tile gid="8"/>
+   <tile gid="11"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="3"/>
+   <tile gid="11"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="11"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="5"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="11"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="23"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="1"/>
+   <tile gid="1"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="1"/>
+   <tile gid="1"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="22"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="6"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="10"/>
+   <tile gid="6"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="6"/>
+   <tile gid="8"/>
+   <tile gid="25"/>
+   <tile gid="8"/>
+   <tile gid="6"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="6"/>
+   <tile gid="8"/>
+   <tile gid="25"/>
+   <tile gid="8"/>
+   <tile gid="6"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="18"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="2"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="18"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="9"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="18"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="18"/>
+   <tile gid="6"/>
+   <tile gid="6"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="4"/>
+   <tile gid="18"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="20"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="15"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="7"/>
+   <tile gid="14"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+   <tile gid="8"/>
+  </data>
+ </layer>
+</map>

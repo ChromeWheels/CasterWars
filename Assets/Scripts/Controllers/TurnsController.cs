@@ -31,6 +31,8 @@ public class TurnsController : MonoBehaviour {
 	private NavController navController = null; //!< The local reference to the nav controller
 	private PlayerController playerController = null; //!< The local reference to the player's controller
 	private RemoteCamera remoteCamera = null; //!< The local reference to the remote camera's script
+	private TilesController tilesController = null; //!< The local reference to the TilesController
+	private UIController uiController = null; //!< The local reference to the UIController
 	private UnitsController unitsController = null; //!< The local reference to the unit's controller
 
 	/**
@@ -48,6 +50,8 @@ public class TurnsController : MonoBehaviour {
 		navController = NavController.S;
 		playerController = PlayerController.S;
 		remoteCamera = RemoteCamera.S;
+		tilesController = TilesController.S;
+		uiController = UIController.S;
 		unitsController = UnitsController.S;
 	}
 
@@ -65,7 +69,7 @@ public class TurnsController : MonoBehaviour {
 	 */
 	public void startTurn (int playerNumber) {
 		// Ensure that the player exists
-		if (playerController.getNumPlayers () >= playerNumber) {
+		if (playerNumber < playerController.getNumPlayers ()) {
 			// Set the new player's index
 			currentPlayerIndex = playerNumber;
 
@@ -89,6 +93,7 @@ public class TurnsController : MonoBehaviour {
 	 * @param player The GameObject of the new player
 	 */
 	public void startTurn (GameObject player) {
+		Debug.Log ("Starting turn");
 		// Ensure that the player's object exists
 		if (player != null) {
 			// Set the current player
@@ -102,6 +107,9 @@ public class TurnsController : MonoBehaviour {
 				// It is not, go to the next player
 				startTurn (++currentPlayerIndex);
 			}
+
+			// Update the disabled tiles
+			tilesController.updateTiles ();
 
 			// Process the resources captured/capturing
 			processResources ();
@@ -134,18 +142,39 @@ public class TurnsController : MonoBehaviour {
 			currentUnit = playerScript.units [unitNumber];
 			unitScript = currentUnit.GetComponent<Unit> ();
 
-			// Move the camera to the unit
-			remoteCamera.moveTo (convertLocation (currentUnit.transform.position));
-
-			// Get the movement alloted for this unit
+			// Set the available movement alloted for this unit
 			movementLeft = unitScript.turnSettings.movementAlloted;
 
-			// Start the movement
-			processMoves ();
+			// Move the camera to the unit
+			remoteCamera.moveTo (convertLocation (currentUnit.transform.position), true);
 		} else {
 			// The player is not in bounds... end the turn
 			endTurn ();
 		}
+	}
+
+	public void endMoveCamera () {
+		// Start the movement
+		processMoves ();
+	}
+
+	/**
+	 * Handles the stay put button
+	 */
+	public void doStayPut () {
+		// Clear the map of highlights
+		mapsController.removeHighlights ();
+
+		// Move to the next unit
+		initUnitTurn (++currentUnitNumber);
+	}
+
+	/**
+	 * Gets the current player
+	 * @return The player's number
+	 */
+	public int getCurrentPlayerNumber () {
+		return currentPlayerIndex;
 	}
 
 	/**
@@ -155,6 +184,9 @@ public class TurnsController : MonoBehaviour {
 	public void doMoveCurrentUnit (string direction) {
 		// Clear the map of highlights
 		mapsController.removeHighlights ();
+
+		// Disable the buttons to prevent multiple presses
+		navController.disableButtons ();
 
 		// Get the current location
 		Vector2 currLocation = convertLocation (currentUnit.transform.position);
@@ -202,7 +234,10 @@ public class TurnsController : MonoBehaviour {
 	 * Function that finishes the movement logic for the unit
 	 */
 	public void finishMovement () {
-		// Start the movement
+		// Keep the count at 3 - infinite movement
+		movementLeft = 3;
+
+		// Start the next movement
 		processMoves ();
 	}
 
@@ -210,6 +245,17 @@ public class TurnsController : MonoBehaviour {
 	 * Ends the turn for the current player
 	 */
 	private void endTurn () {
+		// Check that the user can create anymore units at this time
+//		if (playerScript.remainingPoints > unitsController.getMinPopCost ()) {
+			// Show the units select
+//			uiController.showCanvas ("Units Select", true);
+
+			// Get the panel's script
+//			UnitsSelectPanel unitsSelectPanel = UnitsSelectPanel.S;
+//		} else {
+			// Turn is done, move to next player
+			startTurn (++currentPlayerIndex);
+//		}
 	}
 
 	/**
@@ -254,5 +300,11 @@ public class TurnsController : MonoBehaviour {
 	 * Heal all of the units that are available to be healed
 	 */
 	private void healUnits () {
+	}
+
+	/**
+	 * Once the turn is over, if there are more available points than the minimum cost for a unit, show the creation
+	 */
+	private void createNewUnits () {
 	}
 }

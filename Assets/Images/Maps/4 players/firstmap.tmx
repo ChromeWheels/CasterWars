@@ -2,105 +2,105 @@
 <map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" nextobjectid="1">
  <tileset firstgid="1" name="Sprites" tilewidth="32" tileheight="32" tilecount="23" columns="0">
   <tile id="0">
-   <image width="32" height="32" source="Bridge.png"/>
+   <image width="32" height="32" source="../../Tiles/Bridge.png"/>
   </tile>
   <tile id="1">
-   <image width="32" height="32" source="City.png"/>
+   <image width="32" height="32" source="../../Tiles/City.png"/>
   </tile>
   <tile id="2">
-   <image width="32" height="32" source="Forest.png"/>
+   <image width="32" height="32" source="../../Tiles/Forest.png"/>
   </tile>
   <tile id="3">
-   <image width="32" height="32" source="Grass.png"/>
+   <image width="32" height="32" source="../../Tiles/Grass.png"/>
   </tile>
   <tile id="4">
-   <image width="32" height="32" source="Hills.png"/>
+   <image width="32" height="32" source="../../Tiles/Hills.png"/>
   </tile>
   <tile id="5">
-   <image width="32" height="32" source="Mountains.png"/>
+   <image width="32" height="32" source="../../Tiles/Mountains.png"/>
   </tile>
   <tile id="6">
-   <image width="32" height="32" source="Road.png"/>
+   <image width="32" height="32" source="../../Tiles/Road.png"/>
   </tile>
   <tile id="7">
-   <image width="32" height="32" source="Water.png"/>
+   <image width="32" height="32" source="../../Tiles/Water.png"/>
   </tile>
   <tile id="8">
-   <image width="32" height="32" source="Resources.png"/>
+   <image width="32" height="32" source="../../Tiles/Resources.png"/>
   </tile>
   <tile id="9">
-   <image width="32" height="32" source="Camp.png"/>
+   <image width="32" height="32" source="../../Tiles/Camp.png"/>
   </tile>
   <tile id="10">
-   <image width="32" height="32" source="Temple.png"/>
+   <image width="32" height="32" source="../../Tiles/Temple.png"/>
   </tile>
   <tile id="11">
-   <image width="32" height="32" source="Bridge-Elbow.png"/>
+   <image width="32" height="32" source="../../Tiles/Bridge-Elbow.png"/>
   </tile>
   <tile id="12">
-   <image width="32" height="32" source="Bridge-T.png"/>
+   <image width="32" height="32" source="../../Tiles/Bridge-T.png"/>
   </tile>
   <tile id="13">
-   <image width="32" height="32" source="Road-Elbow.png"/>
+   <image width="32" height="32" source="../../Tiles/Road-Elbow.png"/>
   </tile>
   <tile id="14">
-   <image width="32" height="32" source="Road-T.png"/>
+   <image width="32" height="32" source="../../Tiles/Road-T.png"/>
   </tile>
   <tile id="17">
    <properties>
     <property name="rotationY" value="90"/>
     <property name="tile" value="6"/>
    </properties>
-   <image width="32" height="32" source="Road90.png"/>
+   <image width="32" height="32" source="../../Tiles/Road90.png"/>
   </tile>
   <tile id="18">
    <properties>
     <property name="rotationY" value="-90"/>
     <property name="tile" value="13"/>
    </properties>
-   <image width="32" height="32" source="Road-Elbow-90.png"/>
+   <image width="32" height="32" source="../../Tiles/Road-Elbow-90.png"/>
   </tile>
   <tile id="19">
    <properties>
     <property name="rotationY" value="90"/>
     <property name="tile" value="13"/>
    </properties>
-   <image width="32" height="32" source="Road-Elbow90.png"/>
+   <image width="32" height="32" source="../../Tiles/Road-Elbow90.png"/>
   </tile>
   <tile id="20">
    <properties>
     <property name="rotationY" value="180"/>
     <property name="tile" value="13"/>
    </properties>
-   <image width="32" height="32" source="Road-Elbow180.png"/>
+   <image width="32" height="32" source="../../Tiles/Road-Elbow180.png"/>
   </tile>
   <tile id="21">
    <properties>
     <property name="rotationY" value="-90"/>
     <property name="tile" value="14"/>
    </properties>
-   <image width="32" height="32" source="Road-T-90.png"/>
+   <image width="32" height="32" source="../../Tiles/Road-T-90.png"/>
   </tile>
   <tile id="22">
    <properties>
     <property name="rotationY" value="90"/>
     <property name="tile" value="14"/>
    </properties>
-   <image width="32" height="32" source="Road-T90.png"/>
+   <image width="32" height="32" source="../../Tiles/Road-T90.png"/>
   </tile>
   <tile id="23">
    <properties>
     <property name="rotationY" value="180"/>
     <property name="tile" value="14"/>
    </properties>
-   <image width="32" height="32" source="Road-T180.png"/>
+   <image width="32" height="32" source="../../Tiles/Road-T180.png"/>
   </tile>
   <tile id="24">
    <properties>
     <property name="rotationY" value="90"/>
     <property name="tile" value="0"/>
    </properties>
-   <image width="32" height="32" source="Bridge90.png"/>
+   <image width="32" height="32" source="../../Tiles/Bridge90.png"/>
   </tile>
  </tileset>
  <tileset firstgid="26" name="Road-90" tilewidth="1" tileheight="1" tilecount="0" columns="0"/>

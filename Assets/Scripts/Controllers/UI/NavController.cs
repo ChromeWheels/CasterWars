@@ -53,6 +53,17 @@ public class NavController : MonoBehaviour {
 	}
 
 	/**
+	 * Disable all of the movement buttons
+	 */
+	public void disableButtons () {
+		// Loop through the buttons array
+		foreach (GameObject button in buttons) {
+			// Disable the button's enabled availability
+			button.GetComponent<Button> ().interactable = false;
+		}
+	}
+
+	/**
 	 * Toggles the enabled status of the directional buttons
 	 * @param location The location of the current tile to start from
 	 */
