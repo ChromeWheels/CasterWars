@@ -25,6 +25,8 @@ public class MapsController : MonoBehaviour {
 		get { return dimensions; }
 		private set { dimensions = value; }
 	} //!< Property method of Dimensions dimensions
+	[HideInInspector]
+	public Dictionary<int, GameObject> unitLocations = null; //!< Associative array of units and their locations on the map
 
 	private float offset = 0; //!< The offset of the map
 	private Dimensions dimensions = null; //!< Local copy of the map's dimensions
@@ -32,7 +34,6 @@ public class MapsController : MonoBehaviour {
 	private List<int> locationIndexes = null; //!< Temporary list of unique neighbor locations. Used to prevent duplicate locations in List<Vector2> locations
 	private Dictionary<Vector2, HighlightActions> moves = null; //!< Temporary list of possible moves
 	private int startingIndex = 0; //!< Variable used when getting neighbors to prevent adding the starting tile to poosible neighbors
-	private Dictionary<int, GameObject> unitLocations = null; //!< Associative array of units and their locations on the map
 
 	/**
 	 * Controllers
@@ -93,6 +94,9 @@ public class MapsController : MonoBehaviour {
 
 		// Move the map into place
 		map.transform.position = new Vector3 (((mapScript.dimensions.width / 2) - offset), map.transform.position.y, ((mapScript.dimensions.height / 2) - offset));
+
+		// Setup the resources
+		tilesController.initResources (mapScript.resourceTile);
 	}
 
 	/**
@@ -121,6 +125,23 @@ public class MapsController : MonoBehaviour {
 
 		// Get the unit
 		unitLocations.TryGetValue (convertToIndex (position), out unit);
+
+		return unit;
+	}
+
+	/**
+	 * Gets the unit at the provided int index
+	 * 
+	 * For protection, use getUnitAtPosition first
+	 * @param index The integer index representation of the Vector2 location
+	 * @return Returns the unit at the provided position
+	 */
+	public GameObject getUnitAtPosition (int index) {
+		// Initialize the output
+		GameObject unit = null;
+
+		// Get the unit
+		unitLocations.TryGetValue (index, out unit);
 
 		return unit;
 	}
@@ -494,9 +515,6 @@ public class MapsController : MonoBehaviour {
 		// Get the movement cost to move out of the current location
 		float movementCost = getMovementCost (location);
 
-		// Initialize the highlight action
-		HighlightActions action = HighlightActions.Move;
-
 		// Recursively move to the next tile if you can
 		if (canMoveFrom (location, range, movementCost)) {
 			// Take away the cost to move away from the current location
@@ -568,8 +586,7 @@ public class MapsController : MonoBehaviour {
 
 		// Ensure that the current tile is in bounds
 		if (
-			location != null // Ensure that the location is not null
-			&& (location.x >= 0) // Check that the x is not less than 0
+			(location.x >= 0) // Check that the x is not less than 0
 			&& (location.x < (dimensions.width - 1))// Check that the x is not greater than the map's width
 			&& (location.y >= 0) // Check that the y is not less than 0
 			&& (location.y < (dimensions.height - 1)) // Check that the y is not greater than the map's height
@@ -598,11 +615,32 @@ public class MapsController : MonoBehaviour {
 	 * @param location Location of the tile to get the type
 	 * @return The type of the provided tile
 	 */
-	private int getTileType (Vector2 location) {
+	public int getTileType (Vector2 location) {
 		try {
 			return mapScript.tiles [(int)location.y, (int)location.x] - 1;
 		} catch (Exception e) {
 			Debug.Log (location);
+			Debug.Log (e.ToString ());
+			return 0;
+		}
+	}
+
+	/**
+	 * Get the tile type if the provided tile location
+	 * @param index The integer index representation of the Vector2 location
+	 * @return The type of the provided tile
+	 */
+	public int getTileType (int index) {
+		try {
+			// Get the tile at the index
+			GameObject tile = null;
+			unitLocations.TryGetValue (index, out tile);
+
+			// Send back the tile type
+			return mapScript.tiles [(int)tile.transform.position.z, (int)tile.transform.position.x] - 1;
+		} catch (Exception e) {
+			Debug.Log (index);
+			Debug.Log (e.ToString ());
 			return 0;
 		}
 	}

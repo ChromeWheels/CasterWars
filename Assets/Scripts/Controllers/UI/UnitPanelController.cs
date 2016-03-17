@@ -17,8 +17,6 @@ public class UnitPanelController : MonoBehaviour {
 	public GameObject downButton = null; //!< Reference to the down arrow button
 
 	[HideInInspector]
-	public string name = ""; //!< Local copy of the unit's name
-	[HideInInspector]
 	public int populationCount = 0; //!< Count of the population to build upon game start
 
 	private UnitsSelectPanel unitsSelectPanel = null; //!< Local reference to the UnitsSelectPanel script

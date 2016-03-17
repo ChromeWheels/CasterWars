@@ -27,6 +27,7 @@ public class TurnsController : MonoBehaviour {
 	/**
 	 * Controllers
 	 */
+	private Game gameController = null; //!< The local reference to the game controller
 	private MapsController mapsController = null; //!< The local reference to the maps controller
 	private NavController navController = null; //!< The local reference to the nav controller
 	private PlayerController playerController = null; //!< The local reference to the player's controller
@@ -46,6 +47,7 @@ public class TurnsController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
+		gameController = Game.S;
 		mapsController = MapsController.S;
 		navController = NavController.S;
 		playerController = PlayerController.S;
@@ -109,7 +111,7 @@ public class TurnsController : MonoBehaviour {
 			}
 
 			// Update the disabled tiles
-			tilesController.updateTiles ();
+			tilesController.updateDisabledTiles ();
 
 			// Process the resources captured/capturing
 			processResources ();
@@ -211,14 +213,26 @@ public class TurnsController : MonoBehaviour {
 		// Get the coords of the tile that will be the new location
 		Vector2 newLocation = convertLocation (currentUnit.transform.position + movementFactor);
 
+		// Get an inverted version of the new location
+		Vector2 invertedNewLocation = newLocation;
+		invertedNewLocation.y = mapsController.invertY (invertedNewLocation.y);
+
 		// Get the action before we move
-		HighlightActions action = mapsController.getTileAction (newLocation);
+		HighlightActions action = mapsController.getTileAction (invertedNewLocation);
 
 		// Do the appropriate action
 		switch (action) {
 		case HighlightActions.Attack:
 			break;
 		case HighlightActions.Capture:
+			// Capture the tile
+			tilesController.captureTile (mapsController.convertToIndex (invertedNewLocation));
+
+			// Subtract the cost of the just finished move
+			movementLeft -= mapsController.getMovementCost (newLocation);
+
+			// Move the unit
+			unitsController.moveUnit (currentUnit, newLocation);
 			break;
 		case HighlightActions.Move:
 			// Subtract the cost of the just finished move
@@ -234,8 +248,11 @@ public class TurnsController : MonoBehaviour {
 	 * Function that finishes the movement logic for the unit
 	 */
 	public void finishMovement () {
-		// Keep the count at 3 - infinite movement
-		movementLeft = 3;
+		// Check if can be infinite movement
+		if (gameController.devTools.devMode && gameController.devTools.infiniteTurn) {
+			// Keep the count at 3 - infinite movement
+			movementLeft = 3;
+		}
 
 		// Start the next movement
 		processMoves ();
@@ -287,7 +304,9 @@ public class TurnsController : MonoBehaviour {
 	/**
 	 * Applies the captured resources and attempts to capture the ones that are available
 	 */
-	private void processResources () {		
+	private void processResources () {
+		// Update the amount of points from the updated resources array
+		playerScript.remainingPoints += tilesController.updateCaptured ();
 	}
 
 	/**

@@ -114,18 +114,14 @@ public class Game : MonoBehaviour {
 		MapsController mapsController = MapsController.S;
 
 		// Choose the map based on the number of players
-		int mapSize = 0;
 		switch (playerController.getNumPlayers ()) {
 		case 2:
 			mapsController.construct (1);
-			mapSize = 2;
 			break;
 		case 3:
 			mapsController.construct (2);
-			mapSize = 3;
 			break;
 		case 4:
-			mapSize = 4;
 			mapsController.construct (0);
 			break;
 		}

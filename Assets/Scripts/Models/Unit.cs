@@ -10,7 +10,6 @@ public class Unit : MonoBehaviour {
 	public GeneralInformation generalInformation = null; //!< Local instance of the GeneralInformation settings
 	public TurnSettings turnSettings = null; //!< Local instance of the TurnSettings settings
 
-	private float capturePercent = 0; //!< Percentage of capture status
-	private float healthPercent = 100; //!< The percentage of health remaining
-	private bool hasCaptured = false; //!< Set to true after sucessfully captured a supply tile
+	[HideInInspector]
+	public int player = 0; //!< The player that this unit belongs to
 }

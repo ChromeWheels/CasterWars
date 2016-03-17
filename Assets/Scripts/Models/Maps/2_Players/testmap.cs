@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 /**
  * 2 player Map - testmap
@@ -31,6 +32,59 @@ public class testmap : Map {
 			{8, 18, 6, 2, 2, 2, 2, 2, 6, 6, 18, 6, 6, 9, 9, 9, 9, 9, 6, 18, 8, 18, 6, 2, 2, 2, 2, 2, 6, 6, 18, 6, 6, 9, 9, 9, 9, 9, 6, 18, 8},
 			{8, 18, 6, 6, 4, 4, 4, 6, 6, 6, 18, 6, 6, 6, 4, 4, 4, 6, 6, 18, 8, 18, 6, 6, 4, 4, 4, 6, 6, 6, 18, 6, 6, 6, 4, 4, 4, 6, 6, 18, 8},
 			{8, 20, 7, 7, 7, 7, 7, 7, 7, 7, 15, 7, 7, 7, 7, 7, 7, 7, 7, 14, 8, 20, 7, 7, 7, 7, 7, 7, 7, 7, 15, 7, 7, 7, 7, 7, 7, 7, 7, 14, 8}
+		};
+
+		resourceTile = new Dictionary<int, Vector2> () {
+			{546, new Vector2 (13, 13)},
+			{547, new Vector2 (14, 13)},
+			{548, new Vector2 (15, 13)},
+			{549, new Vector2 (16, 13)},
+			{550, new Vector2 (17, 13)},
+			{566, new Vector2 (33, 13)},
+			{567, new Vector2 (34, 13)},
+			{568, new Vector2 (35, 13)},
+			{569, new Vector2 (36, 13)},
+			{570, new Vector2 (37, 13)},
+			{587, new Vector2 (13, 14)},
+			{588, new Vector2 (14, 14)},
+			{589, new Vector2 (15, 14)},
+			{590, new Vector2 (16, 14)},
+			{591, new Vector2 (17, 14)},
+			{607, new Vector2 (33, 14)},
+			{608, new Vector2 (34, 14)},
+			{609, new Vector2 (35, 14)},
+			{610, new Vector2 (36, 14)},
+			{611, new Vector2 (37, 14)},
+			{628, new Vector2 (13, 15)},
+			{629, new Vector2 (14, 15)},
+			{630, new Vector2 (15, 15)},
+			{631, new Vector2 (16, 15)},
+			{632, new Vector2 (17, 15)},
+			{648, new Vector2 (33, 15)},
+			{649, new Vector2 (34, 15)},
+			{650, new Vector2 (35, 15)},
+			{651, new Vector2 (36, 15)},
+			{652, new Vector2 (37, 15)},
+			{669, new Vector2 (13, 16)},
+			{670, new Vector2 (14, 16)},
+			{671, new Vector2 (15, 16)},
+			{672, new Vector2 (16, 16)},
+			{673, new Vector2 (17, 16)},
+			{689, new Vector2 (33, 16)},
+			{690, new Vector2 (34, 16)},
+			{691, new Vector2 (35, 16)},
+			{692, new Vector2 (36, 16)},
+			{693, new Vector2 (37, 16)},
+			{710, new Vector2 (13, 17)},
+			{711, new Vector2 (14, 17)},
+			{712, new Vector2 (15, 17)},
+			{713, new Vector2 (16, 17)},
+			{714, new Vector2 (17, 17)},
+			{730, new Vector2 (33, 17)},
+			{731, new Vector2 (34, 17)},
+			{732, new Vector2 (35, 17)},
+			{733, new Vector2 (36, 17)},
+			{734, new Vector2 (37, 17)}
 		};
 	}
 }

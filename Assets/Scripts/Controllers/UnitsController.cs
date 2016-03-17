@@ -16,6 +16,7 @@ public class UnitsController : MonoBehaviour {
 	private Vector3 oldPosition = Vector3.zero; //!< The old (original) position of the unit that is being moved
 	private Vector3 newPosition = Vector3.zero; //!< The new (destination) position of the unit that is being moved
 	private int minUnitCost = 100; //!< The minimum cost to create a new unit
+	private int currentPlayer = 0; //!< The index of the player that the units are being created for
 
 	/**
 	 * Controllers
@@ -57,6 +58,27 @@ public class UnitsController : MonoBehaviour {
 	}
 
 	/**
+	 * Gets a list of the units that belongs to a given player
+	 * @param playerNumber The index number of the player
+	 * @return The list of units that belongs to the player
+	 */
+	public List<int> getPlayersUnits (int playerNumber) {
+		// Initialize the output
+		List<int> output = new List<int> ();
+
+		// Loop through the units
+		foreach (KeyValuePair<int, GameObject> unit in mapsController.unitLocations) {
+			// Check if the unit belongs to the player
+			if (unit.Value.GetComponent<Unit> ().player == playerNumber) {
+				// Add the unit's index to the output array
+				output.Add (unit.Key);
+			}
+		}
+
+		return output;
+	}
+
+	/**
 	 * Create the units for all players at the start of the game
 	 */
 	public void doCreateUnitsAtStart () {
@@ -67,6 +89,9 @@ public class UnitsController : MonoBehaviour {
 
 			// Create the units
 			createUnits (currPlayer, unitCounts);
+
+			// Incriment the currentPlayer
+			currentPlayer++;
 		}
 	}
 
@@ -175,7 +200,7 @@ public class UnitsController : MonoBehaviour {
 		// This is used in reverse so that the first used units will be on the outside of the starting group
 		int idx = (startingPositions.Count - 1);
 
-		// Loop through the unit types and create the players
+		// Loop through the unit types and create the units
 		foreach (KeyValuePair<string, int> type in unitCounts) {
 			// Check if there has been any units queued for this type
 			if (type.Value > 0) {
@@ -224,7 +249,7 @@ public class UnitsController : MonoBehaviour {
 
 	/**
 	 * Gets the counts for each unit type for the provided player
-	 * @param currentPlayer The player to get the counts for
+	 * @param player The player to get the counts for
 	 * @return An associative array of unit types and counts
 	 */
 	private Dictionary<string, int> getPlayerUnitCounts (GameObject player) {
@@ -345,11 +370,17 @@ public class UnitsController : MonoBehaviour {
 		// Instantiate the new unit
 		GameObject newUnit = Instantiate (prefab, new Vector3(position.x, unitStartingY, position.y), rotation) as GameObject;
 
+		// Set the scale if the default scale is not blank
+		newUnit.transform.localScale = prefab.GetComponent<Unit> ().generalInformation.defaultScale;
+
 		// Set the parent
 		newUnit.transform.SetParent (parent.transform);
 
 		// Set the name
 		newUnit.name = string.Format ("{0}: {1}", parent.name, prefab.name);
+
+		// Set the owner
+		newUnit.GetComponent<Unit> ().player = currentPlayer;
 
 		return newUnit;
 	}
