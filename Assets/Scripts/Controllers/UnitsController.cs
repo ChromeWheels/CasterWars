@@ -11,71 +11,70 @@ public class UnitsController : MonoBehaviour {
 
 	public float unitStartingY = -0.51f; //!< The default starting y position of the units
 	public float unitMovementDuration = 0.5f; //!< The time that it takes to move the unit one tile
+	public Dictionary<int, GameObject> unitLocations = null; //!< Associative array of units and their locations on the map
 
-	private GameObject currentUnit = null; //!< The unit that is currently being controlled
+	[HideInInspector]
+	public GameObject currentUnit = null; //!< The current unit's game object
+	[HideInInspector]
+	public int currentUnitNumber = 0; //!< The array index of the current unit
+	[HideInInspector]
+	public Unit currentUnitScript = null; //!< The script of the current unit
+
 	private Vector3 oldPosition = Vector3.zero; //!< The old (original) position of the unit that is being moved
 	private Vector3 newPosition = Vector3.zero; //!< The new (destination) position of the unit that is being moved
 	private int minUnitCost = 100; //!< The minimum cost to create a new unit
 	private int currentPlayer = 0; //!< The index of the player that the units are being created for
 
-	/**
-	 * Controllers
-	 */
-	private Game gameController = null; //!< Local reference to the Game controller
-	private MapsController mapsController = null; //!< Local reference to the MapsController
-	private RemoteCamera remoteCamera = null; //!< Local reference to the RemoteCamera
-	private TurnsController turnsController = null; //!< Local reference to the TurnsController
-
-	/**
-	 * Collections
-	 */
-	private Players playersCollection = null; //!< Local reference to the Players collection
 	private UnitTypes unitTypesCollection = null; //!< Local reference to the UnitTypes collection
 
+	#region /// @name Controller vars
+	private GameController gameController = null; //!< The local reference to the game controller
+	private MapsController mapsController = null; //!< The local reference to the maps controller
+	private MovementController movementController = null; //!< The local reference to the movement's controller
+	private PlayerController playerController = null; //!< The local reference to the player's controller
+	private RemoteCamera remoteCamera = null; //!< The local reference to the remote camera's script
+	#endregion
+
+	#region /// @name Unity methods
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
 	void Awake () {
 		S = this;
+
+		unitLocations = new Dictionary<int, GameObject> ();
 	}
 
 	/**
 	 * Runs at load time
 	 */
 	void Start () {
-		gameController = Game.S;
+		gameController = GameController.S;
 		mapsController = MapsController.S;
-		playersCollection = Players.S;
+		movementController = MovementController.S;
+		playerController = PlayerController.S;
 		remoteCamera = RemoteCamera.S;
-		turnsController = TurnsController.S;
+
 		unitTypesCollection = UnitTypes.S;
 
 		// Copy the settings from the parent unit types to the faction units
 		propagateOptions ();
-
-		// Get the minimum points required to create a new unit
-
 	}
+	#endregion
 
 	/**
-	 * Gets a list of the units that belongs to a given player
-	 * @param playerNumber The index number of the player
-	 * @return The list of units that belongs to the player
+	 * Sets the new unit as provided in the param
+	 * @param index The array index of the new unit
 	 */
-	public List<int> getPlayersUnits (int playerNumber) {
-		// Initialize the output
-		List<int> output = new List<int> ();
+	public void setNewUnit (int index) {
+		// Set the current unit's number
+		currentUnitNumber = index;
 
-		// Loop through the units
-		foreach (KeyValuePair<int, GameObject> unit in mapsController.unitLocations) {
-			// Check if the unit belongs to the player
-			if (unit.Value.GetComponent<Unit> ().player == playerNumber) {
-				// Add the unit's index to the output array
-				output.Add (unit.Key);
-			}
-		}
+		// Get the unit
+		currentUnit = playerController.currentPlayerScript.units [index];
 
-		return output;
+		// Get the script
+		currentUnitScript = currentUnit.GetComponent<Unit> ();
 	}
 
 	/**
@@ -83,7 +82,7 @@ public class UnitsController : MonoBehaviour {
 	 */
 	public void doCreateUnitsAtStart () {
 		// Loop through the players
-		foreach (GameObject currPlayer in playersCollection.players) {
+		foreach (GameObject currPlayer in playerController.getPlayers ()) {
 			// Get the unit counts
 			Dictionary<string, int> unitCounts = getPlayerUnitCounts (currPlayer);
 
@@ -109,7 +108,7 @@ public class UnitsController : MonoBehaviour {
 		currentUnit = unit;
 
 		// Move the unit's location in the map array
-		mapsController.moveUnit (oldPosition, newPosition);
+		moveUnit (oldPosition, newPosition);
 
 		// Start the co-routine to gracefully move the unit
 		StartCoroutine (Transition ());
@@ -194,7 +193,7 @@ public class UnitsController : MonoBehaviour {
 		units.Add (newUnit);
 
 		// Add the commander to the map's location array
-		mapsController.addUnitToArray(newUnit, startingPositions [0]);
+		addUnitToArray(newUnit, startingPositions [0]);
 
 		// Setup the index that will be used to retreive the starting position
 		// This is used in reverse so that the first used units will be on the outside of the starting group
@@ -210,7 +209,7 @@ public class UnitsController : MonoBehaviour {
 				}
 
 				// Get the prefab from the unitTypes collection
-				GameObject prefab = unitTypesCollection.getUnitPrefab(faction, type.Key);
+				GameObject prefab = getUnitPrefab(faction, type.Key);
 
 				// Build the total units for this type
 				for (int i = 0; i < type.Value; i++) {
@@ -221,7 +220,7 @@ public class UnitsController : MonoBehaviour {
 					units.Add (newUnit);
 
 					// Add the unit to the map's location array
-					mapsController.addUnitToArray(newUnit, startingPositions [idx]);
+					addUnitToArray(newUnit, startingPositions [idx]);
 
 					// Decriment the index
 					idx--;
@@ -303,7 +302,7 @@ public class UnitsController : MonoBehaviour {
 		}
 
 		// Tell the TurnsController that it is done moving
-		turnsController.finishMovement ();
+		movementController.finishMovement ();
 	}
 
 	/**
@@ -316,7 +315,7 @@ public class UnitsController : MonoBehaviour {
 	 */
 	private GameObject initUnit (string faction, string type, Vector2 position, GameObject parent) {
 		// Get the prefab from the unitTypes collection
-		GameObject prefab = unitTypesCollection.getUnitPrefab(faction, type);
+		GameObject prefab = getUnitPrefab(faction, type);
 
 		// Get default rotation from the prefab
 		Quaternion rotation = prefab.GetComponent<Unit> ().generalInformation.defaultRotation;
@@ -335,7 +334,7 @@ public class UnitsController : MonoBehaviour {
 	 */
 	private GameObject initUnit (string faction, string type, Vector2 position, GameObject parent, Quaternion rotation) {
 		// Get the prefab from the unitTypes collection
-		GameObject prefab = unitTypesCollection.getUnitPrefab(faction, type);
+		GameObject prefab = getUnitPrefab(faction, type);
 
 		return initUnit (faction, type, position, parent, rotation, prefab);
 	}
@@ -371,7 +370,12 @@ public class UnitsController : MonoBehaviour {
 		GameObject newUnit = Instantiate (prefab, new Vector3(position.x, unitStartingY, position.y), rotation) as GameObject;
 
 		// Set the scale if the default scale is not blank
-		newUnit.transform.localScale = prefab.GetComponent<Unit> ().generalInformation.defaultScale;
+		Vector3 defaultScale = prefab.GetComponent<Unit> ().generalInformation.defaultScale;
+		if (defaultScale == Vector3.zero) {
+			newUnit.transform.localScale = Vector3.one;
+		} else {
+			newUnit.transform.localScale = defaultScale;
+		}
 
 		// Set the parent
 		newUnit.transform.SetParent (parent.transform);
@@ -384,4 +388,124 @@ public class UnitsController : MonoBehaviour {
 
 		return newUnit;
 	}
+
+
+	/**
+	 * Adds the provided unit to the array of units on the map
+	 * @param unit Unit's game object
+	 * @param location The location of the unit (location Y will be inverted)
+	 */
+	public void addUnitToArray (GameObject unit, Vector2 location) {
+		// Since the location.Y is inverted, invert it back
+		location.y = mapsController.invertY (location.y);
+
+		// Add the unit to the array
+		unitLocations.Add (mapsController.convertToIndex (location), unit);
+	}
+
+	/**
+	 * Gets the unit at the provided Vector2 location
+	 * 
+	 * For protection, use getUnitAtPosition first
+	 * @param position The position of the tile to get the unit at
+	 * @return Returns the unit at the provided position
+	 */
+	public GameObject getUnitAtPosition (Vector2 position) {
+		// Initialize the output
+		GameObject unit = null;
+
+		// Get the unit
+		unitLocations.TryGetValue (mapsController.convertToIndex (position), out unit);
+
+		return unit;
+	}
+
+	/**
+	 * Gets the unit at the provided int index
+	 * 
+	 * For protection, use getUnitAtPosition first
+	 * @param index The integer index representation of the Vector2 location
+	 * @return Returns the unit at the provided position
+	 */
+	public GameObject getUnitAtPosition (int index) {
+		// Initialize the output
+		GameObject unit = null;
+
+		// Get the unit
+		unitLocations.TryGetValue (index, out unit);
+
+		return unit;
+	}
+
+	/**
+	 * Moves the unit at the old position to the new position
+	 * @param oldPosition The original position that the unit resides in
+	 * @param newPosition The position to move the unit to
+	 */
+	public void moveUnit (Vector3 oldPosition, Vector3 newPosition) {
+		// Initialize the temp GameObject
+		GameObject tmp = null;
+
+		// Convert the positions
+		oldPosition = mapsController.convertLocation (oldPosition);
+		newPosition = mapsController.convertLocation (newPosition);
+
+		// Invert the ys
+		oldPosition.y = mapsController.invertY (oldPosition.y);
+		newPosition.y = mapsController.invertY (newPosition.y);
+
+		// Get the indices
+		int oldIndex = mapsController.convertToIndex (oldPosition);
+		int newIndex = mapsController.convertToIndex (newPosition);
+
+		// Retreive the unit from the array
+		unitLocations.TryGetValue (oldIndex, out tmp);
+
+		// Remove the old value from the array
+		unitLocations.Remove (oldIndex);
+
+		// Add the new value
+		unitLocations.Add (newIndex, tmp);
+	}
+
+	/**
+	 * Removes the unit from the array at the given position
+	 * @param position The position of the unit to be removed
+	 */
+	public void destroyUnitAtPosition (Vector2 position) {
+		unitLocations.Remove (mapsController.convertToIndex (position));
+	}
+
+	/**
+	 * Heal all of the units that are available to be healed
+	 */
+	public void healUnits () {
+	}
+
+	/**
+	 * Once the turn is over, if there are more available points than the minimum cost for a unit, show the creation
+	 */
+	private void createNewUnits () {
+	}
+
+	/**
+	 * Gets the prefab of supplied unit type and faction
+	 * @param faction The name of the faction
+	 * @param unitType The type of unit
+	 * @return The prefab of the requested unit
+	 */
+	public GameObject getUnitPrefab (string faction, string unitType) {
+		// Initialize the variables
+		GameObject unitHolder = null;
+		GameObject unitPrefab = null;
+
+		// Get the unit type
+		unitTypesCollection.types.TryGetValue(unitType, out unitHolder);
+
+		// Get the unit prefab from the faction
+		unitHolder.GetComponent<UnitFactions> ().units.TryGetValue (faction, out unitPrefab);
+
+		return unitPrefab;
+	}
+
 }

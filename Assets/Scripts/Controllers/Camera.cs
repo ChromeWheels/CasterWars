@@ -18,15 +18,26 @@ public class Camera : MonoBehaviour {
 										  //!< This is only used if doScrollMove is set to true
 	public float targetY = 10.0f; //!< This is the y position that the camera will take after initial load
 
-	[HideInInspector]
-	public Dimensions mapDimension = null; //!< Local copy of the map's dimensions
-
 	private float duration = 0; //!< This is used to store the duration for the camera to move
 	private bool isInitial = false; //!< If initial calling, do not keep in bounds
 	private bool isMoveToUnit = false; //!< If true, the camera will call back to the TurnsController.endMoveCamera()
 	private Vector3 target = Vector3.zero; //!< This is used to store the new location that the camera must move towards
 	private bool trackMode = false; //!< The boolean setting that disables the calculation of duration if true
 
+	#region /// @name Controller vars
+	protected MapsController mapsController = null; //!< The local reference to the maps controller
+	#endregion
+
+	#region /// @name Unity methods
+	/**
+	 * Runs at load time
+	 */
+	void Start () {
+		mapsController = MapsController.S;
+	}
+	#endregion
+
+	#region /// @name Camera movement
 	/**
 	 * The function that moves the camera
 	 * 
@@ -156,6 +167,7 @@ public class Camera : MonoBehaviour {
 			turnsController.endMoveCamera ();
 		}
 	}
+	#endregion
 
 	/**
 	 * Function that calculates the distance from the camera to the target.
@@ -179,28 +191,24 @@ public class Camera : MonoBehaviour {
 	 * @return The adjusted Vector3 coordinates of the target
 	 */
 	private Vector3 keepInBounds (Vector3 location) {
-		// Get the map's dimensions if it is null
-		if (mapDimension == null || mapDimension.width == 0) {
-			MapsController mapsController = MapsController.S;
-			mapDimension = mapsController.Dimensions;
-		}
-
 		// Generate the min/max x and z distance
 		float minX = ((1.022f * location.y) + (-0.36f)); // y = mx+b Where m=1.022, x=location.y, b=-0.36
 		float minZ = ((0.57f * location.y) + (-0.37f)); // y = mx+b Where m=0.57, x=location.y, b=-0.37
 
+		Debug.Log ((mapsController) ? "true" : "false");
+
 		// Adjust the x distance if it is outside the bounds
 		if (location.x < minX) {
 			location.x = minX;
-		} else if (location.x > (mapDimension.width - minX)) {
-			location.x = (mapDimension.width - minX);
+		} else if (location.x > (mapsController.dimensions.width - minX)) {
+			location.x = (mapsController.dimensions.width - minX);
 		}
 
 		// Adjust the z distance if it is outside the bounds
 		if (location.z < minZ) {
 			location.z = minZ;
-		} else if (location.z > (mapDimension.height - minZ)) {
-			location.z = (mapDimension.height - minZ);
+		} else if (location.z > (mapsController.dimensions.height - minZ)) {
+			location.z = (mapsController.dimensions.height - minZ);
 		}
 
 		return location;

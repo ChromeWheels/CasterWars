@@ -19,11 +19,4 @@ public class Faction : MonoBehaviour {
 
 		unitTypeScript = UnitTypes.S;
 	}
-
-	/**
-	 * Create the new unit and add it to the list of units for this faction
-	 */
-	public void createUnit () {
-		
-	}
 }

@@ -9,13 +9,22 @@ public class PlayerController : MonoBehaviour {
 
 	public static PlayerController S = null;
 
-	/**
-	 * Controllers
-	 */
-	private Game gameController = null; //!< Local reference to the game controller
-	private MapsController mapsController = null; //!< Local reference to the maps controller
+	[HideInInspector]
+	public GameObject currentPlayer = null; //!< Local copy of the current player
+	[HideInInspector]
+	public Player currentPlayerScript = null; //!< The script of the current player
+	[HideInInspector]
+	public int currentPlayerIndex = 0; //!< The array index of the current player
+
 	private Players playersCollection = null; //!< Local reference to the players collection
 
+	#region /// @name Controllers vars
+	private GameController gameController = null; //!< Local reference to the game controller
+	private MapsController mapsController = null; //!< Local reference to the maps controller
+	private UnitsController unitsController = null; //!< The local reference to the unit's controller
+	#endregion
+
+	#region /// @name Unity methods
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
@@ -27,16 +36,18 @@ public class PlayerController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
-		gameController = Game.S;
+		gameController = GameController.S;
 		mapsController = MapsController.S;
 		playersCollection = Players.S;
+		unitsController = UnitsController.S;
 	}
+	#endregion
 
+	#region /// @name Setters
 	/**
-	 * Creates a new player
-	 * @return Returns a reference to the new player's controller
+	 * Creates the player
 	 */
-	public GameObject createPlayer () {
+	public GameObject doCreatePlayer () {
 		// Create the player
 		GameObject newPlayer = new GameObject ();
 
@@ -60,14 +71,26 @@ public class PlayerController : MonoBehaviour {
 
 		return newPlayer;
 	}
+	#endregion
 
+	#region /// @name Setters
 	/**
-	 * Retrieves the number of players
+	 * Sets the new player
+	 * @param index The array index of the new player
 	 */
-	public int getNumPlayers () {
-		return playersCollection.players.Count;
-	}
+	public void setNewPlayer (int index) {
+		// Set the new player's index
+		currentPlayerIndex = index;
 
+		// Get the new player game object
+		currentPlayer = getPlayer (index);
+
+		// Get the player's script
+		currentPlayerScript = currentPlayer.GetComponent<Player> ();
+	}
+	#endregion
+
+	#region /// @name Getters
 	/**
 	 * Gets the player based on the player's number
 	 * @param index The player's number
@@ -75,6 +98,30 @@ public class PlayerController : MonoBehaviour {
 	 */
 	public GameObject getPlayer (int index) {
 		return playersCollection.players [index];
+	}
+
+	/**
+	 * Gets all of the players
+	 * @return The list of all players
+	 */
+	public List<GameObject> getPlayers () {
+		return playersCollection.players;
+	}
+
+	/**
+	 * Retrieves the number of players
+	 */
+	public int getNumPlayers () {
+		return playersCollection.players.Count;
+	}
+	#endregion
+
+	/**
+	 * Function that handles the click of the faction select buttons
+	 * @param faction The name of the faction that the player has selected
+	 */
+	public void doSelectFaction (string faction) {
+		doSelectFaction (currentPlayerIndex, faction);
 	}
 
 	/**
@@ -91,8 +138,29 @@ public class PlayerController : MonoBehaviour {
 
 		if (!gameController.devTools.devMode) {
 			// Move to next screen
-//			uiScript.showCanvas ("Units Select");
+			//			uiScript.showCanvas ("Units Select");
 		}
+	}
+
+	/**
+	 * Gets a list of the units that belongs to a given player
+	 * @param playerNumber The index number of the player
+	 * @return The list of units that belongs to the player
+	 */
+	public List<int> getPlayersUnits (int playerNumber) {
+		// Initialize the output
+		List<int> output = new List<int> ();
+
+		// Loop through the units
+		foreach (KeyValuePair<int, GameObject> unit in unitsController.unitLocations) {
+			// Check if the unit belongs to the player
+			if (unit.Value.GetComponent<Unit> ().player == playerNumber) {
+				// Add the unit's index to the output array
+				output.Add (unit.Key);
+			}
+		}
+
+		return output;
 	}
 
 	/**
@@ -115,5 +183,12 @@ public class PlayerController : MonoBehaviour {
 		}
 
 		return player.remainingPoints;
+	}
+
+	/**
+	 * Destroys the player
+	 */
+	public void destroyPlayer () {
+		Destroy (currentPlayer);
 	}
 }

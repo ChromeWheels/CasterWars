@@ -17,27 +17,24 @@ public class UnitsSelectPanel : MonoBehaviour {
 	public Texture[] unitsTextures = null; //!< The raw collection of textures for the icons on the select panels
 
 	[HideInInspector]
-	public int QueuedPopulationDiff {
-		get { return queuedPopulationDiff; }
-		private set { queuedPopulationDiff = value; }
-	} //!< Property method of int queuedPopulationDiff
+	public int queuedPopulationDiff = 0; //!< The remaining points available after deducting queuedPopulation from allowedPopulation
 
 	private int allowedPopulation = 0; //!< The local storage of the max allowed population size
 	private List<GameObject> panels = null; //!< An array of the instantiated panels
 	private Text pointsText = null; //!< The script of the points text
 	private int queuedPopulation = 0; //!< The ammount of points that the currently queued population costs
-	private int queuedPopulationDiff = 0; //!< The remaining points available after deducting queuedPopulation from allowedPopulation
 	private int queueSize = 0; //!< The number of units that have been queued
 	private Dictionary<string, int> unitPopulations = null; //!< Associative array that holds each unit type and the final count
 	private Dictionary<string, Texture> unitTextures = null; //!< The associative array of unit textures from unitsTextures
 	private UnitTypes unitTypesScript = null; //!< Local reference to the UnitsType script
 	private Text unitsText = null; //!< The text script of the units object
 
-	/**
-	 * Controllers
-	 */
-	private PlayerController playerController = null; //!< Local reference to the PlayerController
+	#region /// @name Controller vars
+	private GameController gameController = null; //!< The local reference to the game controller
+	private PlayerController playerController = null; //!< The local reference to the player's controller
+	#endregion
 
+	#region /// @name Unity methods
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
@@ -57,8 +54,10 @@ public class UnitsSelectPanel : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
+		gameController = GameController.S;
 		playerController = PlayerController.S;
 	}
+	#endregion
 
 	/**
 	 * The constructor function for the units select canvas
@@ -69,8 +68,7 @@ public class UnitsSelectPanel : MonoBehaviour {
 		Unit unitScript = null;
 
 		// Get the initial allowed population
-		Game gameScript = Game.S;
-		allowedPopulation = gameScript.populationSettings.populationAtStart;
+		allowedPopulation = gameController.populationSettings.populationAtStart;
 
 		// Set the initial population on the text
 		pointsText = pointsObject.GetComponent<Text> ();
@@ -94,7 +92,7 @@ public class UnitsSelectPanel : MonoBehaviour {
 
 				// Call the contruction function for the new panel
 				UnitPanelController tmpScript = newPanel.GetComponent<UnitPanelController> ();
-				tmpScript.construct (gameScript.getCurrentPlayer ().generalSettings.factionName, type.Key);
+				tmpScript.construct (playerController.currentPlayerScript.generalSettings.factionName, type.Key);
 			}
 		} 
 	}

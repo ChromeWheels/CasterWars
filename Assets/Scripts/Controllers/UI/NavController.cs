@@ -13,8 +13,12 @@ public class NavController : MonoBehaviour {
 	public GameObject[] buttons = null; //!< The list of buttons
 
 	private Dictionary<string, GameObject> buttonsArray = null; //!< The associative array of the buttons
-	private MapsController mapsController = null; //!< The local reference to the MapsController
 
+	#region /// @name Controller vars
+	private MovementController movementController = null; //!< The local reference to the movement's controller
+	#endregion
+
+	#region /// @name Unity methods
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
@@ -35,8 +39,9 @@ public class NavController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
-		mapsController = MapsController.S;
+		movementController = MovementController.S;
 	}
+	#endregion
 
 	/**
 	 * Show and hide the children game objects
@@ -72,7 +77,7 @@ public class NavController : MonoBehaviour {
 		showHideUI (true);
 
 		// Get the availability of the directions
-		Dictionary<string, bool> directions = mapsController.getMovePossibility (location);
+		Dictionary<string, bool> directions = movementController.getMovePossibility (location);
 
 		// Loop through the directions array
 		foreach (KeyValuePair<string, bool> direction in directions) {
