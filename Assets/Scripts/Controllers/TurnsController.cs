@@ -8,7 +8,7 @@ public class TurnsController : MonoBehaviour {
 
 	public static TurnsController S = null;
 
-	#region /// @name Controller vars
+	#region Controller vars /// @name Controller vars
 	private DisabledTileController disabledTileController = null; //!< The local reference to the disabled tile's controller
 	private GameController gameController = null; //!< The local reference to the game controller
 	private HighlightsController highlightsController = null; //!< The local reference to the highlight's controller
@@ -21,7 +21,7 @@ public class TurnsController : MonoBehaviour {
 	private UnitsController unitsController = null; //!< The local reference to the unit's controller
 	#endregion
 
-	#region /// @name Unity methods
+	#region Unity methods /// @name Unity methods
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
@@ -51,34 +51,42 @@ public class TurnsController : MonoBehaviour {
 	 * @param playerNumber The players collection index of the requested number
 	 */
 	public void startTurn (int playerNumber) {
-		// Ensure that the player exists
-		if (playerNumber < playerController.getNumPlayers ()) {
-			// Get the new player
-			playerController.setNewPlayer (playerNumber);
+		// Ensure that there are more than 1 player alive
+		if (playerController.alivePlayers > 1) {
+//			Debug.Log (string.Format ("Starting the turn for player {0}", (playerNumber + 1)));
 
-			// Verify that the commander is still alive
-			if (!playerController.currentPlayerScript.commanderIsAlive) {
-				// It is not, go to the next player
-				startTurn (++playerController.currentPlayerIndex);
+			// Ensure that the player exists
+			if (playerNumber < playerController.getNumPlayers ()) {
+				// Get the new player
+				playerController.setNewPlayer (playerNumber);
+
+				// Verify that the commander is still alive
+				if (!playerController.currentPlayerScript.commanderIsAlive) {
+					// It is not, go to the next player
+					startTurn (++playerController.currentPlayerIndex);
+				}
+
+				// Update the disabled tiles
+				disabledTileController.updateDisabledTiles ();
+
+				// Process the resources captured/capturing
+				resourceTileController.processResources ();
+
+				// Call the function to award the commander's bonus(es)
+				applyCommanderBonus ();
+
+				// Call the function to heal the units
+				unitsController.healUnits ();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+				// Start the turn off with the commander
+				initUnitTurn (0);
+			} else if (playerController.getNumPlayers () > 0) {
+				// Requested playerNumber is out of bounds... reset to 0
+				startTurn (0);
+			} else {
+				// There is no players left... exit the game
+				gameController.doEndGame ();
 			}
-
-			// Update the disabled tiles
-			disabledTileController.updateDisabledTiles ();
-
-			// Process the resources captured/capturing
-			resourceTileController.processResources ();
-
-			// Call the function to award the commander's bonus(es)
-			applyCommanderBonus ();
-
-			// Call the function to heal the units
-			unitsController.healUnits ();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-
-			// Start the turn off with the commander
-			initUnitTurn (0);
-		} else if (playerController.getNumPlayers () > 0) {
-			// Requested playerNumber is out of bounds... reset to 0
-			startTurn (0);
 		} else {
 			// There is no players left... exit the game
 			gameController.doEndGame ();
@@ -90,6 +98,8 @@ public class TurnsController : MonoBehaviour {
 	 * @param unitNumber The index number of the initial unit to start with
 	 */
 	public void initUnitTurn (int unitNumber) {
+//		Debug.Log (string.Format ("Starting the turn for unit {0} of {1}", (unitNumber + 1), playerController.currentPlayerScript.units.Count));
+
 		// Ensure that the selected unit is inside the bounds
 		if (unitNumber < playerController.currentPlayerScript.units.Count) {
 			unitsController.setNewUnit (unitNumber);

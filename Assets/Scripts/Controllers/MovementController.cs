@@ -9,14 +9,17 @@ public class MovementController : MonoBehaviour {
 
 	public static MovementController S = null;
 
+	#region vars /// @name vars
 	public Dictionary<Vector2, HighlightActions> moves = null; //!< Temporary list of possible moves
 
 	[HideInInspector]
 	public int startingIndex = 0; //!< Variable used when getting neighbors to prevent adding the starting tile to poosible neighbors
 	[HideInInspector]
 	public float movementLeft = 0; //!< The amount of movement that is left for the current unit
+	#endregion
 
-	#region /// @name Controller vars
+	#region Controller vars /// @name Controller vars
+	private BattleController battleController = null; //!< Local reference to the battle controller
 	private DisabledTileController disabledTileController = null; //!< The local reference to the disabled tile's controller
 	private GameController gameController = null; //!< The local reference to the game controller
 	private HighlightsController highlightsController = null; //!< The local reference to the highlight's controller
@@ -30,7 +33,7 @@ public class MovementController : MonoBehaviour {
 	private UnitsController unitsController = null; //!< The local reference to the unit's controller
 	#endregion
 
-	#region /// @name Unity methods
+	#region Unity methods /// @name Unity methods
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
@@ -42,6 +45,7 @@ public class MovementController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
+		battleController = BattleController.S;
 		disabledTileController = DisabledTileController.S;
 		gameController = GameController.S;
 		highlightsController = HighlightsController.S;
@@ -56,6 +60,7 @@ public class MovementController : MonoBehaviour {
 	}
 	#endregion
 
+	#region Setters ///@name Setters
 	/**
 	 * Adds the provided move to the array
 	 * @param location The location of the tile
@@ -64,7 +69,9 @@ public class MovementController : MonoBehaviour {
 	public void addMove (Vector2 location, HighlightActions action) {
 		moves.Add (location, action);
 	}
+	#endregion
 
+	#region Getters ///@name Getters
 	/** 
 	 * Gets all of the neighboring tiles within a movement range
 	 * @param location Location of unit's current position
@@ -133,17 +140,9 @@ public class MovementController : MonoBehaviour {
 
 		return output;
 	}
-		
-	/**
-	 * Retrieves the ability to move onto the tile with the provided tile type
-	 * @param tileType The integer index in the tiles[] array
-	 * @param index The int representation of the location as given by MapsController.convertToIndex (Vector2)
-	 * @return Returns the boolean value that is set in the Unity inspector
-	 */
-	public bool getCanMove (int tileType, int index) {
-		return (tilesController.getTile (tileType).GetComponents<Tile> () [0].canMove && !disabledTileController.isDisabled (index));
-	}
+	#endregion
 
+	#region getMovementCost ///@name getMovementCost
 	/**
 	 * Retrieves the movement cost from the tile with the provided tile type
 	 * @param tileType The integer index in the tiles[] array
@@ -176,7 +175,19 @@ public class MovementController : MonoBehaviour {
 
 		return getMovementCost (tilesController.getTileType (location));
 	}
-		
+	#endregion
+
+	#region Movement Getters ///@name Movement Getters
+	/**
+	 * Retrieves the ability to move onto the tile with the provided tile type
+	 * @param tileType The integer index in the tiles[] array
+	 * @param index The int representation of the location as given by MapsController.convertToIndex (Vector2)
+	 * @return Returns the boolean value that is set in the Unity inspector
+	 */
+	public bool getCanMove (int tileType, int index) {
+		return (tilesController.getTile (tileType).GetComponents<Tile> () [0].canMove && !disabledTileController.isDisabled (index));
+	}
+			
 	/**
 	 * Check to see if the current unit can be moved. Along with canMovedTo
 	 * @see canMoveTo
@@ -238,7 +249,9 @@ public class MovementController : MonoBehaviour {
 
 		return (!unitOnTile && canMoveTo);
 	}
+	#endregion
 
+	#region UI movement handler ///@name UI movement handler
 	/**
 	 * Handles the navigation menu clicks
 	 * @param direction The direction to move the unit
@@ -283,6 +296,23 @@ public class MovementController : MonoBehaviour {
 		// Do the appropriate action
 		switch (action) {
 		case HighlightActions.Attack:
+			// Inver the y of the current location
+			Vector2 invertedCurrLocation = currLocation;
+			invertedCurrLocation.y = mapsController.invertY (invertedCurrLocation.y);
+
+			// Start the battle and get if the attacking unit was killed
+			bool unitKilled = battleController.doBattle (
+				                  mapsController.convertToIndex (invertedCurrLocation),
+				                  mapsController.convertToIndex (invertedNewLocation));
+
+			// Bump the unit index number if the unit is not killed
+			// This prevents skipping a unit as the indices will have changed by deleting the killed unit
+			if (!unitKilled) {
+				unitsController.currentUnitNumber++;
+			}
+
+			// Start the turn for the next unit
+			turnsController.initUnitTurn (unitsController.currentUnitNumber);
 			break;
 		case HighlightActions.Capture:
 			// Capture the tile
@@ -303,7 +333,9 @@ public class MovementController : MonoBehaviour {
 			break;
 		}
 	}
+	#endregion
 
+	#region Turn movement methods ///@name Turn movement methods
 	/**
 	 * Function that finishes the movement logic for the unit
 	 */
@@ -334,5 +366,5 @@ public class MovementController : MonoBehaviour {
 		// Tell the NavController to toggle the availability of the direction buttons
 		navController.toggleButtons (mapsController.convertLocation (unitsController.currentUnit.transform.position));
 	}
-
+	#endregion
 }

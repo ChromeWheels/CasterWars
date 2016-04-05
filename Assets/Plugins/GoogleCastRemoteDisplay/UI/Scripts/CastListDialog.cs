@@ -15,7 +15,9 @@
  */
 
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -69,12 +71,39 @@ namespace Google.Cast.RemoteDisplay.UI {
      */
     [Tooltip("Default: CastListDialog->ListFoundElements->ScrollView->ContentPanel")]
     public GameObject contentPanel;
-
+    
+    /**
+     * The text of non-unsed cast devices
+     */
+    [Tooltip("Default: The text of non-unsed cast devices")]
+    public string unusedCastStatus = "Chromecast";
+    
+    /**
+     * The text of used cast devices with the same game
+     */
+    [Tooltip("Default: The text of used cast devices with the same game")]
+    public string sameGameCastStatus = "CasterWars";
+    
+    /**
+     * Dialog for displaying casting errors.
+     */
+    public CastErrorDialog errorDialog;
+    
+    /**
+     * Fired when the list of available cast devices has been clicked.
+     */
+    public CastRemoteDisplayEvent unusedCastDeviceClickedEvent;
+    
+    /**
+     * Fired when the list of available cast devices has been clicked.
+     */
+    public CastRemoteDisplayEvent usedCastDeviceClickedEvent;
+    
     /**
      * The callback for closing the cast list.
      */
     public UICallback closeButtonTappedCallback;
-
+    
     /**
      * Currently displayed list of buttons - one for each cast device.
      */
@@ -176,10 +205,26 @@ namespace Google.Cast.RemoteDisplay.UI {
         button.nameLabel.text = listDevice.DeviceName;
         button.statusLabel.text = listDevice.Status;
         string deviceId = listDevice.DeviceId;
+        string deviceStatus = listDevice.Status;
         button.button.onClick.AddListener(() => {
-          manager.SelectCastDevice(deviceId);
-          castButtonFrame.ShowConnecting();
-          this.ShowConnectingState();
+          if (deviceStatus == unusedCastStatus || deviceStatus == "Displaying backdrop") {
+            if (unusedCastDeviceClickedEvent != null) {
+              unusedCastDeviceClickedEvent.Invoke(this);
+              manager.SelectCastDevice(deviceId);
+              castButtonFrame.ShowConnecting();
+              this.ShowConnectingState();
+            }
+          } else if (deviceStatus == sameGameCastStatus) {
+            if (usedCastDeviceClickedEvent != null) {
+              usedCastDeviceClickedEvent.Invoke(this);
+              castButtonFrame.ShowConnecting();
+              this.ShowConnectingState();
+            }
+          } else {
+            CastError error = new CastError (CastErrorCode.RemoteDisplayInUse, "Cannot connect to the selected device, it is already in use.");
+            errorDialog.SetError(error);
+            errorDialog.gameObject.SetActive(true);
+          }
         });
         newButton.transform.SetParent(contentPanel.transform, false);
         currentButtons.Add(newButton);
@@ -198,4 +243,10 @@ namespace Google.Cast.RemoteDisplay.UI {
       closeButtonTappedCallback();
     }
   }
+  
+  /**
+  * Used to allow the events fired by CastRemoteDisplayManager to be serializable in the inspector.
+  */
+  [System.Serializable]
+  public class CastRemoteDisplayEvent : UnityEvent<CastListDialog> { }
 }

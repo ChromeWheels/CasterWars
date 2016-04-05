@@ -9,7 +9,7 @@ public class UnitsController : MonoBehaviour {
 
 	public static UnitsController S = null;
 
-	public float unitStartingY = -0.51f; //!< The default starting y position of the units
+	#region Variables /// @name vars
 	public float unitMovementDuration = 0.5f; //!< The time that it takes to move the unit one tile
 	public Dictionary<int, GameObject> unitLocations = null; //!< Associative array of units and their locations on the map
 
@@ -24,10 +24,13 @@ public class UnitsController : MonoBehaviour {
 	private Vector3 newPosition = Vector3.zero; //!< The new (destination) position of the unit that is being moved
 	private int minUnitCost = 100; //!< The minimum cost to create a new unit
 	private int currentPlayer = 0; //!< The index of the player that the units are being created for
+	#endregion
 
+	#region Collection vars /// @name Collection vars
 	private UnitTypes unitTypesCollection = null; //!< Local reference to the UnitTypes collection
+	#endregion
 
-	#region /// @name Controller vars
+	#region Controller vars /// @name Controller vars
 	private GameController gameController = null; //!< The local reference to the game controller
 	private MapsController mapsController = null; //!< The local reference to the maps controller
 	private MovementController movementController = null; //!< The local reference to the movement's controller
@@ -35,7 +38,7 @@ public class UnitsController : MonoBehaviour {
 	private RemoteCamera remoteCamera = null; //!< The local reference to the remote camera's script
 	#endregion
 
-	#region /// @name Unity methods
+	#region Unity methods /// @name Unity methods
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
@@ -62,6 +65,7 @@ public class UnitsController : MonoBehaviour {
 	}
 	#endregion
 
+	#region Switch units /// @name Switch units
 	/**
 	 * Sets the new unit as provided in the param
 	 * @param index The array index of the new unit
@@ -76,7 +80,9 @@ public class UnitsController : MonoBehaviour {
 		// Get the script
 		currentUnitScript = currentUnit.GetComponent<Unit> ();
 	}
+	#endregion
 
+	#region Create units /// @name Create units
 	/**
 	 * Create the units for all players at the start of the game
 	 */
@@ -95,74 +101,9 @@ public class UnitsController : MonoBehaviour {
 	}
 
 	/**
-	 * Physically move the unit on the map
-	 * @param unit The unit's game object
-	 * @param newLocation The new location that the unit will move to
+	 * Once the turn is over, if there are more available points than the minimum cost for a unit, show the creation
 	 */
-	public void moveUnit (GameObject unit, Vector2 newLocation) {
-		// Set the unit's positions
-		oldPosition = unit.transform.position;
-		newPosition = new Vector3 (newLocation.x, oldPosition.y, newLocation.y);
-
-		// Set the current unit
-		currentUnit = unit;
-
-		// Move the unit's location in the map array
-		moveUnit (oldPosition, newPosition);
-
-		// Start the co-routine to gracefully move the unit
-		StartCoroutine (Transition ());
-
-		// Move the remote camera to track the unit's movement
-		remoteCamera.moveTo (newLocation, unitMovementDuration);
-	}
-
-	/**
-	 * Retrieves the unit's cost to the population
-	 * @param unitType
-	 */
-	public int getUnitPopulationCost (string unitType) {
-		// Initialize the output
-		GameObject obj = null;
-
-		// Get the unitType
-		unitTypesCollection.types.TryGetValue (unitType, out obj);
-
-		// Get the script
-		Unit script = obj.GetComponent<Unit> ();
-
-		return script.generalInformation.populationCost;
-	}
-
-	/**
-	 * Copies the settings from the parent unit types to the faction units
-	 */
-	public void propagateOptions () {
-		// Loop through the unit types
-		foreach (GameObject type in unitTypesCollection.unitTypes) {
-			// Get the attached scripts
-			Unit parent = type.GetComponent<Unit> ();
-			UnitFactions factions = type.GetComponent<UnitFactions> ();
-
-			// Loop throught the factions
-			foreach (FactionsList faction in factions.factions) {
-				// Get the attached script
-				Unit child = faction.prefab.GetComponent<Unit> ();
-
-				// Copy the settings iff hasChanged is false on the child class
-				if (!child.hasChanged) {
-					// Copy the settings
-					child.turnSettings = parent.turnSettings;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Gets the minimum population cost
-	 */
-	public int getMinPopCost () {
-		return minUnitCost;
+	private void createNewUnits () {
 	}
 
 	/**
@@ -233,79 +174,6 @@ public class UnitsController : MonoBehaviour {
 	}
 
 	/**
-	 * Sets the minimum population cost
-	 */
-	private void setMinPopCost () {
-		// Loop through the unit types
-		foreach (GameObject type in unitTypesCollection.unitTypes) {
-			// Get the population cost from the tile
-			int cost = type.GetComponent<Unit> ().generalInformation.populationCost;
-
-			// Set the lower of the current minCost and this unit's cost
-			minUnitCost = Mathf.Min (minUnitCost, cost);
-		}
-	}
-
-	/**
-	 * Gets the counts for each unit type for the provided player
-	 * @param player The player to get the counts for
-	 * @return An associative array of unit types and counts
-	 */
-	private Dictionary<string, int> getPlayerUnitCounts (GameObject player) {
-		// Initialize the returned vector
-		Vector2 initLocation = Vector2.zero;
-
-		// Initialize the unitCounts array
-		Dictionary<string, int> unitCounts = null;
-
-		// Get the player's number
-		int playerNumber = player.GetComponent<Player> ().generalSettings.playerNumber;
-
-		// Do this only if devMode is enabled
-		if (gameController.devTools.devMode) {
-			// Get the UnitTypes script and grab the unit types array
-			Dictionary<string, GameObject> unitTypes = UnitTypes.S.types;
-
-			// Reset the array
-			unitCounts = new Dictionary<string, int> ();
-
-			// Loop through the unitTypes and set a population count
-			foreach (KeyValuePair<string, GameObject> type in unitTypes) {
-				// Skip the commander type
-				if (type.Key.CompareTo ("Commander") == 0) {
-					continue;
-				}
-
-				player.GetComponent<Player> ().remainingPoints -= (type.Value.GetComponent<Unit> ().generalInformation.populationCost * gameController.devTools.numUnits);
-				unitCounts.Add (type.Key, gameController.devTools.numUnits);
-			}
-		} else {
-			// Get the unit counts
-			UnitsSelectPanel unitsSelect = UnitsSelectPanel.S;
-			unitCounts = unitsSelect.getUnitCounts (playerNumber);
-		}
-
-		return unitCounts;
-	}
-
-	/**
-	 * The co-routine that gracefully moves the units around the map
-	 */
-	private IEnumerator Transition () {
-		float t = 0.0f;
-
-		while (t < 1.0f) {
-			t += Time.deltaTime * (Time.timeScale / unitMovementDuration);
-
-			currentUnit.transform.position = Vector3.Lerp (oldPosition, newPosition, t);
-			yield return 0;
-		}
-
-		// Tell the TurnsController that it is done moving
-		movementController.finishMovement ();
-	}
-
-	/**
 	 * Instantiates and initializes a new unit from the given parameters
 	 * @param faction The faction that the new unit belongs to
 	 * @param type The type of unit to create
@@ -366,11 +234,14 @@ public class UnitsController : MonoBehaviour {
 	 * @return The created unit
 	 */
 	private GameObject initUnit (string faction, string type, Vector2 position, GameObject parent, Quaternion rotation, GameObject prefab) {
+		// Get the starting y of the prefab
+		Unit prefabScript = prefab.GetComponent<Unit> ();
+
 		// Instantiate the new unit
-		GameObject newUnit = Instantiate (prefab, new Vector3(position.x, unitStartingY, position.y), rotation) as GameObject;
+		GameObject newUnit = Instantiate (prefab, new Vector3(position.x, prefabScript.generalInformation.unitStartingY, position.y), rotation) as GameObject;
 
 		// Set the scale if the default scale is not blank
-		Vector3 defaultScale = prefab.GetComponent<Unit> ().generalInformation.defaultScale;
+		Vector3 defaultScale = prefabScript.generalInformation.defaultScale;
 		if (defaultScale == Vector3.zero) {
 			newUnit.transform.localScale = Vector3.one;
 		} else {
@@ -388,8 +259,270 @@ public class UnitsController : MonoBehaviour {
 
 		return newUnit;
 	}
+	#endregion
 
+	#region Destroy unit /// @name Destroy unit
+	/**
+	 * Starts the process of destroying the supplied unit by checking if the unit is a commander or not
+	 * @param unit The unit that will be destroyed
+	 */
+	public void doDestroyUnit (GameObject unit) {
+		// Get the script of the unit
+		Unit script = unit.GetComponent<Unit> ();
 
+		// See if the unit is a commander
+		if (script.generalInformation.isCommander) {
+			// Clear the player's units from the board and kill the commander
+			destroyPlayersUnits (script.player);
+		} else {
+			// Kill the one unit
+			destroyUnit (unit, true);
+		}
+	}
+
+	/**
+	 * Destroys the provided unit
+	 * 
+	 * Use doDestroyUnit to call this function
+	 * @see doDestroyUnit
+	 * @param unit The GameObject of the unit to destroy
+	 * @param removeFromPlayer If true, will remove the unit from the player's units array
+	 */
+	private void destroyUnit (GameObject unit, bool removeFromPlayer) {
+		// Get the script of the unit
+		Unit script = unit.GetComponent<Unit> ();
+
+		// Get the location of the unit
+		Vector3 pos = unit.transform.position;
+		int index = mapsController.convertToIndex (pos.x, pos.z);
+
+		// Remove the unit from the unit locations array
+		unitLocations.Remove (index);
+
+		// Remove the unit from the player unit's location array if removeFromPlayer is true
+		if (removeFromPlayer) {
+			playerController.currentPlayerScript.units.Remove (unit);
+		}
+
+		// Destroy the GameObject
+		Destroy (unit);
+	}
+
+	/**
+	 * Destroys all units that belong to the given player and sets the commander to dead
+	 * @param playerNumber The aray index number of the player
+	 */
+	public void destroyPlayersUnits (int playerNumber) {
+		// Get the player's script
+		Player playerScript = playerController.getPlayer (playerNumber).GetComponent<Player> ();
+
+		// Set the commander as dead
+		playerScript.commanderIsAlive = false;
+
+		// Loop through the player's units
+		foreach (GameObject unit in playerController.currentPlayerScript.units) {
+			// Kill the current unit
+			destroyUnit (unit, false);
+		}
+
+		// Clear the array
+		playerController.currentPlayerScript.units = new List<GameObject> ();
+
+		// Update the number of alive players
+		playerController.alivePlayers--;
+
+		// End the game if this was the last commander
+		if (playerController.alivePlayers <= 1) {
+			gameController.doEndGame ();
+		}
+	}
+	#endregion
+
+	#region Move unit /// @name Move unit
+	/**
+	 * Physically move the unit on the map
+	 * @param unit The unit's game object
+	 * @param newLocation The new location that the unit will move to
+	 */
+	public void moveUnit (GameObject unit, Vector2 newLocation) {
+		// Set the unit's positions
+		oldPosition = unit.transform.position;
+		newPosition = new Vector3 (newLocation.x, oldPosition.y, newLocation.y);
+
+		// Set the current unit
+		currentUnit = unit;
+
+		// Move the unit's location in the map array
+		moveUnit (oldPosition, newPosition);
+
+		// Start the co-routine to gracefully move the unit
+		StartCoroutine (Transition ());
+
+		// Move the remote camera to track the unit's movement
+		remoteCamera.moveTo (newLocation, unitMovementDuration);
+	}
+
+	/**
+	 * The co-routine that gracefully moves the units around the map
+	 */
+	private IEnumerator Transition () {
+		float t = 0.0f;
+
+		while (t < 1.0f) {
+			t += Time.deltaTime * (Time.timeScale / unitMovementDuration);
+
+			currentUnit.transform.position = Vector3.Lerp (oldPosition, newPosition, t);
+			yield return 0;
+		}
+
+		// Tell the TurnsController that it is done moving
+		movementController.finishMovement ();
+	}
+
+	/**
+	 * Moves the unit at the old position to the new position
+	 * @param oldPosition The original position that the unit resides in
+	 * @param newPosition The position to move the unit to
+	 */
+	public void moveUnit (Vector3 oldPosition, Vector3 newPosition) {
+		// Initialize the temp GameObject
+		GameObject tmp = null;
+
+		// Convert the positions
+		oldPosition = mapsController.convertLocation (oldPosition);
+		newPosition = mapsController.convertLocation (newPosition);
+
+		// Invert the ys
+		oldPosition.y = mapsController.invertY (oldPosition.y);
+		newPosition.y = mapsController.invertY (newPosition.y);
+
+		// Get the indices
+		int oldIndex = mapsController.convertToIndex (oldPosition);
+		int newIndex = mapsController.convertToIndex (newPosition);
+
+		// Retreive the unit from the array
+		unitLocations.TryGetValue (oldIndex, out tmp);
+
+		// Remove the old value from the array
+		unitLocations.Remove (oldIndex);
+
+		// Add the new value
+		unitLocations.Add (newIndex, tmp);
+	}
+	#endregion
+
+	#region Population cost /// @name Population cost
+	/**
+	 * Retrieves the unit's cost to the population
+	 * @param unitType
+	 */
+	public int getUnitPopulationCost (string unitType) {
+		// Initialize the output
+		GameObject obj = null;
+
+		// Get the unitType
+		unitTypesCollection.types.TryGetValue (unitType, out obj);
+
+		// Get the script
+		Unit script = obj.GetComponent<Unit> ();
+
+		return script.generalInformation.populationCost;
+	}
+
+	/**
+	 * Gets the minimum population cost
+	 */
+	public int getMinPopCost () {
+		return minUnitCost;
+	}
+
+	/**
+	 * Sets the minimum population cost
+	 */
+	private void setMinPopCost () {
+		// Loop through the unit types
+		foreach (GameObject type in unitTypesCollection.unitTypes) {
+			// Get the population cost from the tile
+			int cost = type.GetComponent<Unit> ().generalInformation.populationCost;
+
+			// Set the lower of the current minCost and this unit's cost
+			minUnitCost = Mathf.Min (minUnitCost, cost);
+		}
+	}
+	#endregion
+
+	#region Copy options to childs /// @name Copy options to childs
+	/**
+	 * Copies the settings from the parent unit types to the faction units
+	 */
+	public void propagateOptions () {
+		// Loop through the unit types
+		foreach (GameObject type in unitTypesCollection.unitTypes) {
+			// Get the attached scripts
+			Unit parent = type.GetComponent<Unit> ();
+			UnitFactions factions = type.GetComponent<UnitFactions> ();
+
+			// Loop throught the factions
+			foreach (FactionsList faction in factions.factions) {
+				// Get the attached script
+				Unit child = faction.prefab.GetComponent<Unit> ();
+
+				// Copy the settings iff hasChanged is false on the child class
+				if (!child.hasChanged) {
+					// Copy the settings
+					child.turnSettings = parent.turnSettings;
+					child.generalInformation = parent.generalInformation;
+				}
+			}
+		}
+	}
+	#endregion
+
+	#region Unit counts /// @name Unit counts
+	/**
+	 * Gets the counts for each unit type for the provided player
+	 * @param player The player to get the counts for
+	 * @return An associative array of unit types and counts
+	 */
+	private Dictionary<string, int> getPlayerUnitCounts (GameObject player) {
+		// Initialize the returned vector
+		Vector2 initLocation = Vector2.zero;
+
+		// Initialize the unitCounts array
+		Dictionary<string, int> unitCounts = null;
+
+		// Get the player's number
+		int playerNumber = player.GetComponent<Player> ().generalSettings.playerNumber;
+
+		// Do this only if devMode is enabled
+		if (gameController.devTools.devMode) {
+			// Get the UnitTypes script and grab the unit types array
+			Dictionary<string, GameObject> unitTypes = UnitTypes.S.types;
+
+			// Reset the array
+			unitCounts = new Dictionary<string, int> ();
+
+			// Loop through the unitTypes and set a population count
+			foreach (KeyValuePair<string, GameObject> type in unitTypes) {
+				// Skip the commander type
+				if (type.Key.CompareTo ("Commander") == 0) {
+					continue;
+				}
+
+				player.GetComponent<Player> ().remainingPoints -= (type.Value.GetComponent<Unit> ().generalInformation.populationCost * gameController.devTools.numUnits);
+				unitCounts.Add (type.Key, gameController.devTools.numUnits);
+			}
+		} else {
+			// Get the unit counts
+			UnitsSelectPanel unitsSelect = UnitsSelectPanel.S;
+			unitCounts = unitsSelect.getUnitCounts (playerNumber);
+		}
+
+		return unitCounts;
+	}
+	#endregion
+
+	#region Add to array /// @name Add to array
 	/**
 	 * Adds the provided unit to the array of units on the map
 	 * @param unit Unit's game object
@@ -402,7 +535,9 @@ public class UnitsController : MonoBehaviour {
 		// Add the unit to the array
 		unitLocations.Add (mapsController.convertToIndex (location), unit);
 	}
+	#endregion
 
+	#region Get unit /// @name Get unit
 	/**
 	 * Gets the unit at the provided Vector2 location
 	 * 
@@ -438,57 +573,6 @@ public class UnitsController : MonoBehaviour {
 	}
 
 	/**
-	 * Moves the unit at the old position to the new position
-	 * @param oldPosition The original position that the unit resides in
-	 * @param newPosition The position to move the unit to
-	 */
-	public void moveUnit (Vector3 oldPosition, Vector3 newPosition) {
-		// Initialize the temp GameObject
-		GameObject tmp = null;
-
-		// Convert the positions
-		oldPosition = mapsController.convertLocation (oldPosition);
-		newPosition = mapsController.convertLocation (newPosition);
-
-		// Invert the ys
-		oldPosition.y = mapsController.invertY (oldPosition.y);
-		newPosition.y = mapsController.invertY (newPosition.y);
-
-		// Get the indices
-		int oldIndex = mapsController.convertToIndex (oldPosition);
-		int newIndex = mapsController.convertToIndex (newPosition);
-
-		// Retreive the unit from the array
-		unitLocations.TryGetValue (oldIndex, out tmp);
-
-		// Remove the old value from the array
-		unitLocations.Remove (oldIndex);
-
-		// Add the new value
-		unitLocations.Add (newIndex, tmp);
-	}
-
-	/**
-	 * Removes the unit from the array at the given position
-	 * @param position The position of the unit to be removed
-	 */
-	public void destroyUnitAtPosition (Vector2 position) {
-		unitLocations.Remove (mapsController.convertToIndex (position));
-	}
-
-	/**
-	 * Heal all of the units that are available to be healed
-	 */
-	public void healUnits () {
-	}
-
-	/**
-	 * Once the turn is over, if there are more available points than the minimum cost for a unit, show the creation
-	 */
-	private void createNewUnits () {
-	}
-
-	/**
 	 * Gets the prefab of supplied unit type and faction
 	 * @param faction The name of the faction
 	 * @param unitType The type of unit
@@ -507,5 +591,14 @@ public class UnitsController : MonoBehaviour {
 
 		return unitPrefab;
 	}
+	#endregion
 
+
+	#region Heal units /// @name Heal units
+	/**
+	 * Heal all of the units that are available to be healed
+	 */
+	public void healUnits () {
+	}
+	#endregion
 }

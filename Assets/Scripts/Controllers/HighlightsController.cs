@@ -2,6 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 
+/**
+ * The controller for the highlights on the map
+ */
 public class HighlightsController : MonoBehaviour {
 
 	public static HighlightsController S = null;

@@ -195,8 +195,6 @@ public class Camera : MonoBehaviour {
 		float minX = ((1.022f * location.y) + (-0.36f)); // y = mx+b Where m=1.022, x=location.y, b=-0.36
 		float minZ = ((0.57f * location.y) + (-0.37f)); // y = mx+b Where m=0.57, x=location.y, b=-0.37
 
-		Debug.Log ((mapsController) ? "true" : "false");
-
 		// Adjust the x distance if it is outside the bounds
 		if (location.x < minX) {
 			location.x = minX;

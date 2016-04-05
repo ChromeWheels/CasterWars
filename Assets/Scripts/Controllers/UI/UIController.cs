@@ -10,10 +10,12 @@ public class UIController : MonoBehaviour {
 
 	public static UIController S = null;
 
-	public GameObject[] canvasObjects = null; //!< Collection of the ui canvases
+	public GameObject[] canvasObjects = null; //!< Collection of the UI canvases
+	public GameObject[] modalObjects = null; //!< Collection of modals (popups) for the UI
 	public GameObject unitSelectConfirmModal = null; //!< Confirmation modal for the unit select panel
 
-	private Dictionary<string, GameObject> canvases = null; //!< Associative array of the ui canvases
+	private Dictionary<string, GameObject> canvases = null; //!< Associative array of the UI canvases
+	private Dictionary<string, GameObject> modals = null; //!< Associative array of the UI modals
 	private UnitsSelectPanel unitsSelectPanel = null; //!< Local reference to the UnitsSelectPanel
 
 	/**
@@ -22,9 +24,16 @@ public class UIController : MonoBehaviour {
 	void Awake () {
 		S = this;
 
+		// Setup the canvases array
 		canvases = new Dictionary<string, GameObject> ();
 		foreach (GameObject canvas in canvasObjects) {
 			canvases.Add (canvas.name, canvas);
+		}
+
+		// Setup the modals array
+		modals = new Dictionary<string, GameObject> ();
+		foreach (GameObject modal in modalObjects) {
+			canvases.Add (modal.name, modal);
 		}
 	}
 

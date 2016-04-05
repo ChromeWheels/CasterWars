@@ -308,7 +308,12 @@ namespace Google.Cast.RemoteDisplay {
      * Thrown when the Remote Display configuration was rejected by the cast device.
      */
     RemoteDisplayConfigurationRejected = 3,
-
+    
+    /**
+     * Thrown when the Remote Display is already in use
+     */
+    RemoteDisplayInUse = 4,
+    
     /**
      * Thrown when the error message is malformed. Indicates an internal Cast error.
      */
@@ -458,8 +463,14 @@ namespace Google.Cast.RemoteDisplay {
             return "Play Services Update Required";
           case CastErrorCode.RemoteDisplayConfigurationRejected:
             return "Remote Display Config Rejected";
+          case CastErrorCode.RemoteDisplayInUse:
+            return "Remote Display In Use";
           default:
-            return "Unknown Error";
+            if (title != null) {
+              return title;
+            } else {
+              return "Unknown Error";
+            }
         }
       }
     }
@@ -477,8 +488,14 @@ namespace Google.Cast.RemoteDisplay {
             return "Google Play Services requires an update.";
           case CastErrorCode.RemoteDisplayConfigurationRejected:
             return "Remote display configuration rejected by Cast device.";
+          case CastErrorCode.RemoteDisplayInUse:
+            return "Cannot connect to the selected device, it is already in use.";
           default:
-            return "Unknown Error";
+            if (message != null) {
+              return message;
+            } else {
+              return "Unknown Error";
+            }
         }
       }
     }
@@ -490,6 +507,13 @@ namespace Google.Cast.RemoteDisplay {
      */
     public CastError(CastErrorCode errorCode, string message) {
       this.errorCode = errorCode;
+      this.message = message;
+    }
+    
+    private string title;
+    
+    public CastError (string title, string message) {
+      this.title = title;
       this.message = message;
     }
   }
