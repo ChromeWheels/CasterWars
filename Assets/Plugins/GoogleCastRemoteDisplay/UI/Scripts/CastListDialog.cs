@@ -16,6 +16,7 @@
 
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System;
 using System.Collections;
@@ -206,25 +207,51 @@ namespace Google.Cast.RemoteDisplay.UI {
         button.statusLabel.text = listDevice.Status;
         string deviceId = listDevice.DeviceId;
         string deviceStatus = listDevice.Status;
-        button.button.onClick.AddListener(() => {
-          if (deviceStatus == unusedCastStatus || deviceStatus == "Displaying backdrop") {
-            if (unusedCastDeviceClickedEvent != null) {
-              unusedCastDeviceClickedEvent.Invoke(this);
-              manager.SelectCastDevice(deviceId);
-              castButtonFrame.ShowConnecting();
-              this.ShowConnectingState();
-            }
-          } else if (deviceStatus == sameGameCastStatus) {
-            if (usedCastDeviceClickedEvent != null) {
-              usedCastDeviceClickedEvent.Invoke(this);
-              castButtonFrame.ShowConnecting();
-              this.ShowConnectingState();
-            }
-          } else {
-            CastError error = new CastError (CastErrorCode.RemoteDisplayInUse, "Cannot connect to the selected device, it is already in use.");
-            errorDialog.SetError(error);
-            errorDialog.gameObject.SetActive(true);
-          }
+
+		EventTrigger.Entry entry = new EventTrigger.Entry();
+		entry.eventID = EventTriggerType.PointerUp;
+		entry.callback = new EventTrigger.TriggerEvent();
+		UnityAction<BaseEventData> l_callback = new UnityAction<BaseEventData> ((BaseEventData eventData) => {
+		  if (deviceStatus == unusedCastStatus || deviceStatus == "Displaying backdrop") {
+			if (unusedCastDeviceClickedEvent != null) {
+			  unusedCastDeviceClickedEvent.Invoke(this);
+			  manager.SelectCastDevice(deviceId);
+			  castButtonFrame.ShowConnecting();
+			  this.ShowConnectingState();
+			}
+		  } else if (deviceStatus == sameGameCastStatus) {
+			if (usedCastDeviceClickedEvent != null) {
+			  usedCastDeviceClickedEvent.Invoke(this);
+			  castButtonFrame.ShowConnecting();
+			  this.ShowConnectingState();
+			}
+		  } else {
+			CastError error = new CastError (CastErrorCode.RemoteDisplayInUse, "Cannot connect to the selected device, it is already in use.");
+			errorDialog.SetError(error);
+			errorDialog.gameObject.SetActive(true);
+		  }
+		});
+		entry.callback.AddListener(l_callback);
+		button.trigger.triggers.Add(entry);
+		button.button.onClick.AddListener(() => {
+//          if (deviceStatus == unusedCastStatus || deviceStatus == "Displaying backdrop") {
+//            if (unusedCastDeviceClickedEvent != null) {
+//              unusedCastDeviceClickedEvent.Invoke(this);
+//              manager.SelectCastDevice(deviceId);
+//              castButtonFrame.ShowConnecting();
+//              this.ShowConnectingState();
+//            }
+//          } else if (deviceStatus == sameGameCastStatus) {
+//            if (usedCastDeviceClickedEvent != null) {
+//              usedCastDeviceClickedEvent.Invoke(this);
+//              castButtonFrame.ShowConnecting();
+//              this.ShowConnectingState();
+//            }
+//          } else {
+//            CastError error = new CastError (CastErrorCode.RemoteDisplayInUse, "Cannot connect to the selected device, it is already in use.");
+//            errorDialog.SetError(error);
+//            errorDialog.gameObject.SetActive(true);
+//          }
         });
         newButton.transform.SetParent(contentPanel.transform, false);
         currentButtons.Add(newButton);

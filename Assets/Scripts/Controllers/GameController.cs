@@ -33,22 +33,25 @@ public class GameController : MonoBehaviour {
 	private List<string> texts; //!< The array of lines for the debug text object
 
 	public CastErrorDialog errorDialog; //!< The error dialog for the ui
+	public CastRemoteDisplayManager displayManager = null; //!< The local reference to the display manager
 
-//	/**
-//	 * Current Player
-//	 */
+	/**
+	 * Current Player
+	 */
 	private GameObject currentPlayer = null; //!< Local reference to the player object for the current player
 	private Player currentPlayerScript = null; //!< Local reference to the Player script for the current player
 
-	/**
-	 * Controllers
-	 */
+	private IEnumerator timeoutRoutine = null; //!< The stored countdown coroutine that will disconnect from the cast device
+
+	#region Controller vars /// @name Controller vars
 	private NetworkController networkController = null; //!< The local reference to the network controller and API
 	private PlayerController playerController = null; //!< Local reference to the Players collections script
 	private TurnsController turnsController = null; //!< Local reference to the turns controller
-	private UIController uiScript = null; //!< Local reference to the UIController script
+	private UIController uiController = null; //!< The local reference to the UIController
 	private UnitsController unitsController = null; //!< Local reference to the units controller
+	#endregion
 
+	#region Unity methods /// @name Unity methods
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
@@ -65,9 +68,13 @@ public class GameController : MonoBehaviour {
 		networkController = NetworkController.S;
 		playerController = PlayerController.S;
 		turnsController = TurnsController.S;
-		uiScript = UIController.S;
+		uiController = UIController.S;
 		unitsController = UnitsController.S;
+
+		// Force the screen mode
+		Screen.orientation = ScreenOrientation.LandscapeLeft;
 	}
+	#endregion
 
 	/**
 	 * Function that initilizes things once the phone has started a cast
@@ -105,7 +112,7 @@ public class GameController : MonoBehaviour {
 //			currentPlayerScript = currentPlayer.GetComponent<Player> ();
 
 			// Change to the next step on the phone
-			uiScript.showCanvas ("Factions Select");
+//			uiController.showCanvas ("Factions Select");
 //		}
 	}
 
@@ -123,8 +130,8 @@ public class GameController : MonoBehaviour {
 	public void doEndCast () {
 		debug ("End casting");
 
-		if (uiScript != null) {
-			uiScript.hideAllCanvases ();
+		if (uiController != null) {
+			uiController.hideAllCanvases ();
 		}
 	}
 
@@ -181,8 +188,8 @@ public class GameController : MonoBehaviour {
 				texts = new List<string> ();
 			}
 
-			// If the text has more than n-1 lines
-			if (texts.Count >= (linesToDisplay - 1)) {
+			// If the text has more than n lines
+			if (texts.Count > linesToDisplay) {
 				// Remove the oldest line
 				texts.RemoveAt (0);
 			}
@@ -224,4 +231,76 @@ public class GameController : MonoBehaviour {
 			networkController.doHostGame ();
 		}
 	}
+
+	#region Timeout methods /// @name Timeout methods
+	/**
+	 * Method that resets the countdown timer to 5 minutes
+	 */
+	public void resetCountdown () {
+		// Do nothing if in devMode
+		if (!devTools.devMode) {
+			// Check if the countdown has already begun
+			if (timeoutRoutine != null) {
+				// Stop the countdown
+				StopCoroutine (timeoutRoutine);
+			}
+
+			// Set the countdown to wait 4½ minutes and set the initial time left to 30 seconds
+			timeoutRoutine = countdown (5, 5, false);//(60 * 4.5f), 30, false);
+
+			// Start the countdown
+			StartCoroutine (timeoutRoutine);
+		}
+	}
+
+	/**
+	 * The countdown coroutine that will disconnect from the cast device after 5 minutes of inactivity
+	 */
+	private IEnumerator countdown (float waitTime, float timeLeft, bool isFinalCountdown) {
+		// Wait the prescribed time
+		yield return new WaitForSeconds (waitTime);
+
+		// Setup the recursive call
+		timeoutRoutine = countdown (1, --timeLeft, true);
+
+		// Create the message
+		string message = string.Format ("You have been idle for awhile, You will be diconnected in {0} seconds if there is no activity.", timeLeft);
+
+		// Check if the final countdown has started
+		if (!isFinalCountdown) {
+			// Show the warning
+			uiController.showDialog ("Are you still there?", message, new string[] {"Continue"}, new DialogActions[] {DialogActions.ResetCountdownClock});
+
+			// Start the final countdown 1 second at a time
+			StartCoroutine (timeoutRoutine);
+		} else {
+			// Check if the time is at or past 0
+			if (timeLeft <= 0) {
+				// Close the warning
+				uiController.closeDialog ();
+
+				// Show disconnected alert
+				uiController.showDialog ("Nap time", "You have been disconnected due to inactivity.", new string[] {"Okay"}, new DialogActions[] {DialogActions.None});
+
+				// Choose what to disconnect from
+				if (networkController.isHost) {
+					// Stop server
+					networkController.doStopHosting ();
+
+					// Disconnect from the cast device
+					displayManager.StopRemoteDisplaySession ();
+				} else {
+					// Disconnect from the server
+					networkController.doDisconnect ();
+				}
+			} else {
+				// Update the time left on the warning
+				uiController.updateDialog (message);
+
+				// Count the next second
+				StartCoroutine (timeoutRoutine);
+			}
+		}
+	}
+	#endregion
 }

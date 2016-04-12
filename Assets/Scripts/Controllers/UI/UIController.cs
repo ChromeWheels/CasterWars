@@ -12,7 +12,7 @@ public class UIController : MonoBehaviour {
 
 	public GameObject[] canvasObjects = null; //!< Collection of the UI canvases
 	public GameObject[] modalObjects = null; //!< Collection of modals (popups) for the UI
-	public GameObject unitSelectConfirmModal = null; //!< Confirmation modal for the unit select panel
+	public DialogController dialogController = null; //!< The controller for the dialog
 
 	private Dictionary<string, GameObject> canvases = null; //!< Associative array of the UI canvases
 	private Dictionary<string, GameObject> modals = null; //!< Associative array of the UI modals
@@ -77,4 +77,35 @@ public class UIController : MonoBehaviour {
 			}
 		}
 	}
+
+	#region Dialog methods /// @name Dialog methods
+	/**
+	 * Method that shows the much needed generic dialog
+	 * @param title The title of the dialog
+	 * @param message The message of the dialog
+	 * @param buttons The buttons to show. The indices of these buttons is used the same as the param actions
+	 * @param actions The actions that will be triggered. The indices of these actions is used the same as the param buttons
+	 */
+	public void showDialog (string title, string message, string[] buttons, DialogActions[] actions) {
+		// Show the dialog
+		dialogController.gameObject.SetActive (true);
+
+		// Call the constructor
+		dialogController.construct (title, message, buttons, actions);
+	}
+
+	/**
+	 * Method that updates the message of the dialog
+	 * @param message The message of the dialog
+	 */
+	public void updateDialog (string message) {
+		// Update the dialog's message
+		dialogController.message.text = message;
+	}
+
+	public void closeDialog () {
+		// Deconstruct the dialog first
+		dialogController.deconstruct ();
+	}
+	#endregion
 }

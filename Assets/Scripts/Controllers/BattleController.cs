@@ -133,7 +133,7 @@ public class BattleController : MonoBehaviour {
 	 * Uses the following formula:
 	 * Where \f$a\f$ = Attacking unit's power, \f$d\f$ = Defending unit's power, \f$t\f$ = Defending unit's tile defense bonus
 	 * \f[
-	 *    h = clope \times (a - d \times t) + yIntercept
+	 *    h = slope \times (a - d \times t) + yIntercept
 	 * \f]
 	 * @param attack The power of the attacking unit
 	 * @param defense The power of the defending unit

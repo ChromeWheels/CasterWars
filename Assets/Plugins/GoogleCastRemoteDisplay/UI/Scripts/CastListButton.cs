@@ -15,6 +15,7 @@
  */
 
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Google.Cast.RemoteDisplay.UI {
@@ -26,6 +27,10 @@ namespace Google.Cast.RemoteDisplay.UI {
      * The clickable button used to select a Cast device.
      */
     public Button button;
+	/**
+     * The clickable button used to select a Cast device.
+     */
+	public EventTrigger trigger;
     /**
      * The label with the Cast device name.
      */
