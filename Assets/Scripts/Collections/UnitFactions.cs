@@ -17,6 +17,10 @@ public class UnitFactions : MonoBehaviour {
 		// Create an associative array of the units by faction
 		units = new Dictionary<string, GameObject>();
 		foreach (FactionsList faction in factions) {
+			// Set the faction name on the unit
+			faction.prefab.GetComponent<Unit> ().generalInformation.factionName = faction.factionName;
+
+			// Add the unit to the array
 			units.Add (faction.factionName, faction.prefab);
 		}
 	}

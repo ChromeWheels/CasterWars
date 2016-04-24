@@ -13,4 +13,5 @@ public class GeneralInformation {
 	public float unitStartingY = -0.51f; //!< The default starting y position of the units
 	public Vector3 defaultScale = Vector3.one; //!< The default scale of the unit
 	public Quaternion defaultRotation = Quaternion.identity; //!< The default rotation of the unit
+	public string factionName = ""; //!< The name of the faction that this unit belongs to
 }
