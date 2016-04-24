@@ -633,80 +633,80 @@ public class UnitsController : MonoBehaviour {
 	 * This is the class to play what sound based on the unit type
 	 */
 	public void PlaySound(GameObject unit) {
-		if (unit.generalInformation.factionName == BearCommander) {
-			audio.clip = AudioClip[6];
+		if (unit.generalInformation.factionName == "Bear" && unit.generalInformation.isCommander == true) {
+			GetComponent<AudioSource>().clip = audioClip[6];
 		}
 		else if(unit.generalInformation.factionName == BearHeavyMelee){
-			audio.clip = AudioClip[2];
+			GetComponent<AudioSource>().clip = audioClip[2];
 		}
 		else if(unit.generalInformation.factionName == BearHeavyRanged){
-			audio.clip = AudioClip[3];
+			GetComponent<AudioSource>().clip = audioClip[3];
 		}
 		else if(unit.generalInformation.factionName == BearMelee){
-			audio.clip = AudioClip[0];
+			GetComponent<AudioSource>().clip = audioClip[0];
 		}
 		else if(unit.generalInformation.factionName == BearRanged){
-			audio.clip = AudioClip[1];
+			GetComponent<AudioSource>().clip = audioClip[1];
 		}
-		else if(unit.generalInformation.factionName == BearSpecial){
-			audio.clip = AudioClip[6];
+		else if(unit.generalInformation.factionName == "Bear" && unit.generalInformation.isSpecial == true){
+			GetComponent<AudioSource>().clip = audioClip[6];
 		}
-		else if(unit.generalInformation.factionName == VampireCommander){
-			audio.clip = AudioClip[5];
+		else if(unit.generalInformation.factionName == "Vampire" && unit.generalInformation.isCommander == true){
+			GetComponent<AudioSource>().clip = audioClip[5];
 		}
 		else if(unit.generalInformation.factionName == VampireHeavyMelee){
-			audio.clip = AudioClip[2];
+			GetComponent<AudioSource>().clip = audioClip[2];
 		}
 		else if(unit.generalInformation.factionName == VampireHeavyRanged){
-			audio.clip = AudioClip[3];
+			GetComponent<AudioSource>().clip = audioClip[3];
 		}
 		else if(unit.generalInformation.factionName == VampireMelee){
-			audio.clip = AudioClip[0];
+			GetComponent<AudioSource>().clip = audioClip[0];
 		}
 		else if(unit.generalInformation.factionName == VampireRanged){
-			audio.clip = AudioClip[1];
+			GetComponent<AudioSource>().clip = audioClip[1];
 		}
-		else if(unit.generalInformation.factionName == VampireSpecial){
-			audio.clip = AudioClip[4];
+		else if(unit.generalInformation.factionName == "Vampire" && unit.generalInformation.isSpecial == true){
+			GetComponent<AudioSource>().clip = audioClip[4];
 		}
-		else if(unit.generalInformation.factionName == MushroomCommander){
-			audio.clip = AudioClip[11];
+		else if(unit.generalInformation.factionName == "Mushroom" && unit.generalInformation.isCommander == true){
+			GetComponent<AudioSource>().clip = audioClip[11];
 		}
 		else if(unit.generalInformation.factionName == MushroomHeavyMelee){
-			audio.clip = AudioClip[2];
+			GetComponent<AudioSource>().clip = audioClip[2];
 		}
 		else if(unit.generalInformation.factionName == MushroomHeavyRanged){
-			audio.clip = AudioClip[3];
+			GetComponent<AudioSource>().clip = audioClip[3];
 		}
 		else if(unit.generalInformation.factionName == MushroomMelee){
-			audio.clip = AudioClip[0];
+			GetComponent<AudioSource>().clip = audioClip[0];
 		}
 		else if(unit.generalInformation.factionName == MushroomRanged){
-			audio.clip = AudioClip[1];
+			GetComponent<AudioSource>().clip = audioClip[1];
 		}
-		else if(unit.generalInformation.factionName == MushroomSpecial){
-			audio.clip = AudioClip[10];
+		else if(unit.generalInformation.factionName == "Mushroom" && unit.generalInformation.isSpecial == true){
+			GetComponent<AudioSource>().clip = audioClip[10];
 		}
-		else if(unit.generalInformation.factionName == TomeCommander){
-			audio.clip = AudioClip[9];
+		else if(unit.generalInformation.factionName == "Tome" && unit.generalInformation.isCommander == true){
+			GetComponent<AudioSource>().clip = audioClip[9];
 		}
 		else if(unit.generalInformation.factionName == TomeHeavyMelee){
-			audio.clip = AudioClip[2];
+			GetComponent<AudioSource>().clip = audioClip[2];
 		}
 		else if(unit.generalInformation.factionName == TomeHeavyRanged){
-			audio.clip = AudioClip[3];
+			GetComponent<AudioSource>().clip = audioClip[3];
 		}
 		else if(unit.generalInformation.factionName == TomeMelee){
-			audio.clip = AudioClip[0];
+			GetComponent<AudioSource>().clip = audioClip[0];
 		}
 		else if(unit.generalInformation.factionName == TomeRanged){
-			audio.clip = AudioClip[1];
+			GetComponent<AudioSource>().clip = audioClip[1];
 		}
-		else if(unit.generalInformation.factionName == TomeSpecial){
-			audio.clip = AudioClip[8];
+		else if(unit.generalInformation.factionName == "Tome" && unit.generalInformation.isSpecial == true){
+			GetComponent<AudioSource>().clip = audioClip[8];
 		}
 		//Actuallys plays the clip
-		audio.Play();
+		GetComponent<AudioSource>().Play();
 
 	}
 	#endregion
