@@ -2,10 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 
+/**
+ * The controller for the lobby ui that is displayed on the tv
+ */
 public class LobbyController : MonoBehaviour {
 
 	public static LobbyController S = null;
 
+	#region vars /// @name vars
 	public GameObject lobbyCanvas = null; //!< The canvas to put the players on for the lobby
 	public GameObject lobbyPlayerPrefab = null; //!< The GameObject for the lobby player
 	public Vector3 playerScale = Vector3.zero; //!< The default scale for the lobby player
@@ -13,9 +17,10 @@ public class LobbyController : MonoBehaviour {
 	public Texture blankImage = null; //!< The default image for unjoined players
 	public Texture connectedImage = null; //!< The default image for joined players
 
-	private Dictionary<string, GameObject> players = null;
-	private Dictionary<string, LobbyPlayerController> playerScripts = null;
-	private bool lobbyCreated = false;
+	private Dictionary<string, GameObject> players = null; //!< The associative array of the lobby players
+	private Dictionary<string, LobbyPlayerController> playerScripts = null; //!< The associative array of the lobby players' scripts
+	private bool lobbyCreated = false; //!< Boolean flag to represent the created status of the lobby
+	#endregion
 
 	#region Controller vars/// @name Controller vars
 	private GameController gameController = null; //!< The local reference to the game controller
@@ -43,10 +48,14 @@ public class LobbyController : MonoBehaviour {
 	}
 	#endregion
 
-	#region doCreateLobby method /// @name doCreateLobby method
-	public void doCreateLobby (string playerName) {
+	#region lobby management methods /// @name lobby management methods
+	/**
+	 * Method that creates and initializes the lobby
+	 */
+	private void doCreateLobby () {
+		if (gameController.devTools.devMode) { gameController.debug ("Creating lobby"); }
+
 		// Add the four blank players
-		gameController.debug ("Creating lobby");
 		for (int i = 1; i < 5; i++) {
 			// Instantiate the new player
 			GameObject newPlayer = Instantiate (lobbyPlayerPrefab) as GameObject;
@@ -88,19 +97,50 @@ public class LobbyController : MonoBehaviour {
 			players.Add (newPlayer.name, newPlayer);
 			playerScripts.Add (newPlayer.name, playerScript);
 		}
+
+		// Set the lobby created flag
+		lobbyCreated = true;
+	}
+
+	/**
+	 * Method that destroys and cleans up the lobby
+	 */
+	public void doCleanupLobby () {
+		if (gameController.devTools.devMode) { gameController.debug ("Cleaning up the lobby"); }
+
+		// Loop through the lobbly player objects
+		foreach (KeyValuePair<string, GameObject> player in players) {
+			// Destroy the player
+			Destroy (player.Value);
+		}
+
+		// Reset the arrays
+		players = new Dictionary<string, GameObject> ();
+		playerScripts = new Dictionary<string, LobbyPlayerController> ();
+
+		// Reset the lobby's created state flag
+		lobbyCreated = false;
+
+		// Hide the lobby
+		gameObject.SetActive (false);
 	}
 	#endregion
 
-	#region addPlayerToLobby methods /// @name addPlayerToLobby methods
+	#region player management methods /// @name player management methods
+	/**
+	 * Method that adds a player to the lobby and changes the image shown
+	 * @param playerName The name from the player's player object. Used for ID
+	 */
 	public void addPlayerToLobby (string playerName) {
+		if (gameController.devTools.devMode) { gameController.debug ("Adding lobby player"); }
+
 		// Check if the lobby is created
 		if (!lobbyCreated) {
 			// Create it
-			doCreateLobby (playerName);
+			doCreateLobby ();
 		}
 
 		// Get the player's script
-		gameController.debug (string.Format ("adding {0} to the lobby", playerName));
 		LobbyPlayerController player = null;
 		playerScripts.TryGetValue (playerName, out player);
 
@@ -108,14 +148,39 @@ public class LobbyController : MonoBehaviour {
 		player.playerImage.texture = connectedImage;
 	}
 
-	public void addPlayerToLobby (string faction, string playerName) {
-		// Create the player
-		addPlayerToLobby (playerName);
-	}
-	#endregion
+	/**
+	 * Method that removes the provided player from the lobby
+	 * @param playerName The name of the player to remove
+	 */
+	public void removePlayerFromLobby (string playerName) {
+		if (gameController.devTools.devMode) { gameController.debug ("Removing lobby player"); }
 
-	#region removePlayerFromLobby method /// @name removePlayerFromLobby method
-	public void removePlayerFromLobby () {
+		// Check if the lobby is created
+		if (!lobbyCreated) {
+			// Get the player's script
+			LobbyPlayerController player = null;
+			playerScripts.TryGetValue (playerName, out player);
+
+			// Add the player (change the image)
+			player.playerImage.texture = blankImage;
+		}
+	}
+
+	/**
+	 * Update's the ready state of the player (add's the ready text on top of the place holder)
+	 * @param playerNum The array index of the player
+	 * @param ready The ready state to set the player to
+	 */
+	public void updatePlayerReady (int playerNum, bool ready) {
+		// Get the player's script
+		LobbyPlayerController player = null;
+		playerScripts.TryGetValue (string.Format ("Player {0}", (playerNum + 1)), out player);
+
+		// Ensure that the player is not null
+		if (player != null) {
+			// Change the ready state of the player
+			player.readyText.SetActive (ready);
+		}
 	}
 	#endregion
 }

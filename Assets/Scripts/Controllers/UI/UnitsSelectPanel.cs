@@ -48,14 +48,15 @@ public class UnitsSelectPanel : MonoBehaviour {
 		foreach (Texture unit in unitsTextures) {
 			unitTextures.Add (unit.name, unit);
 		}
+
+		gameController = GameController.S;
+		playerController = PlayerController.S;
 	}
 
 	/**
 	 * Runs at load time
 	 */
 	void Start () {
-		gameController = GameController.S;
-		playerController = PlayerController.S;
 	}
 	#endregion
 
@@ -92,7 +93,7 @@ public class UnitsSelectPanel : MonoBehaviour {
 
 				// Call the contruction function for the new panel
 				UnitPanelController tmpScript = newPanel.GetComponent<UnitPanelController> ();
-				tmpScript.construct (playerController.currentPlayerScript.generalSettings.factionName, type.Key);
+				tmpScript.construct (playerController.factionName, type.Key);
 			}
 		} 
 	}
@@ -118,10 +119,9 @@ public class UnitsSelectPanel : MonoBehaviour {
 
 	/**
 	 * Gets the queued counts from the unit panels and returns it in an associative array
-	 * @param playerNumber The player's array index
 	 * @return An associative array of the queued units count
 	 */
-	public Dictionary<string, int> getUnitCounts (int playerNumber) {
+	public Dictionary<string, int> getUnitCounts () {
 		// Initialize the array
 		unitPopulations = new Dictionary<string, int> ();
 
@@ -132,9 +132,6 @@ public class UnitsSelectPanel : MonoBehaviour {
 
 			// Add the unit to the population array
 			unitPopulations.Add(script.name, script.populationCount);
-
-			// Update the player's points available
-			playerController.updatePoints (playerNumber, script.populationCount, false);
 		}
 
 		return unitPopulations;

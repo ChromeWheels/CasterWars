@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
@@ -27,21 +28,16 @@ public class GameController : MonoBehaviour {
 	public DevTools devTools = null; //!< Settings for dev testing. Only used if devMode is enabled
 	public PopulationSettings populationSettings = null; //!< Class to hold the population settings
 
-	public GameObject debugText = null; //!< The debugging text on the ui
+	public Text debugText = null; //!< The debugging text on the ui
 	public int linesToDisplay = 10; //!< The number of lines to display
-	private Text debugTextScript = null; //!< The script for the debuggin text object
 	private List<string> texts; //!< The array of lines for the debug text object
 
 	public CastErrorDialog errorDialog; //!< The error dialog for the ui
 	public CastRemoteDisplayManager displayManager = null; //!< The local reference to the display manager
 
-	/**
-	 * Current Player
-	 */
-	private GameObject currentPlayer = null; //!< Local reference to the player object for the current player
-	private Player currentPlayerScript = null; //!< Local reference to the Player script for the current player
-
 	private IEnumerator timeoutRoutine = null; //!< The stored countdown coroutine that will disconnect from the cast device
+	[HideInInspector]
+	public int readyPlayers = 0; //!< The number of ready players
 
 	#region Controller vars /// @name Controller vars
 	private NetworkController networkController = null; //!< The local reference to the network controller and API
@@ -57,8 +53,6 @@ public class GameController : MonoBehaviour {
 	 */
 	void Awake () {
 		S = this;
-
-		debugTextScript = debugText.GetComponent<Text> ();
 	}
 
 	/**
@@ -71,50 +65,46 @@ public class GameController : MonoBehaviour {
 		uiController = UIController.S;
 		unitsController = UnitsController.S;
 
-		// Force the screen mode
+		// Force the screen mode into landscape mode
 		Screen.orientation = ScreenOrientation.LandscapeLeft;
 	}
 	#endregion
 
+	#region Cast methods /// @name Cast methods
 	/**
 	 * Function that initilizes things once the phone has started a cast
 	 */
 	public void doCastScreen () {
 		debug ("Started Casting");
-
-//		if (devTools.devMode) {
-//			FactionsCollection factionsCollection = FactionsCollection.S;
-//
-//			for (int i = 0; i < devTools.numPlayers; i++) {
-//				GameObject newPlayer = playerController.doCreatePlayer ();
-//				Player playerScript = newPlayer.GetComponent<Player> ();
-//
-//				string faction = factionsCollection.factionNames [i];
-//				playerController.doSelectFaction (i, faction);
-//
-//				if (i == 0) {
-//					currentPlayer = newPlayer;
-//					currentPlayerScript = playerScript;
-//				}
-//			}
-//
-//			doStartGame ();
-//
-//			DisabledTileController disabledTileController = DisabledTileController.S;
-//			disabledTileController.disableTile (new Vector2 (19, 11), 3);
-//
-//			uiScript.showCanvas ("Nav");
-//		} else {
-			// Create the player
-//			currentPlayer = playerController.doCreatePlayer ();
-
-			// Set the player script
-//			currentPlayerScript = currentPlayer.GetComponent<Player> ();
-
-			// Change to the next step on the phone
-//			uiController.showCanvas ("Factions Select");
-//		}
 	}
+
+	/**
+	 * Function that takes out the trash once the casting is done
+	 */
+	public void doEndCast () {
+		debug ("End casting");
+
+		networkController.doQuitGame ();
+
+		if (uiController != null) {
+			uiController.hideAllCanvases ();
+		}
+	}
+
+	/**
+	 * Handler for the attempt to connect to a game and/or device
+	 * @param inUse The boolean flag of if the cast device is in use or not
+	 */
+	public void doTryCastScreen (bool inUse) {
+		// Choose what to do
+		if (inUse) {
+			networkController.doJoinGame ();
+		} else {
+			// Initialize a new game and setup the hosting
+			networkController.doHostGame ();
+		}
+	}
+	#endregion
 
 	public void doCatchErrors () {
 //		debug ("Error");
@@ -124,47 +114,74 @@ public class GameController : MonoBehaviour {
 //		debug ("Devices Updated");
 	}
 
+	#region Ready state methods /// @name Ready state methods
 	/**
-	 * Function that takes out the trash once the casting is done
+	 * Checks for the ready state of readiness of all players
+	 * @param isHost Used for choosing what to check for\n
+	 * If set, checks if all players including the host is ready. This is used to see if to start the game or not.\n
+	 * If off, checks if all players minus the host is ready. Used for checking to enable/disable the start game button.
+	 * @return The bool output of the ready state of all players
 	 */
-	public void doEndCast () {
-		debug ("End casting");
+	public bool getReadyState (bool isHost) {
+		// Var used to subtract 1 if this is not a call to check for game starting
+		int offset = 0;
 
-		if (uiController != null) {
-			uiController.hideAllCanvases ();
+		// Is this a call to check for game starting?
+		if (!isHost) {
+			// Offset by one
+			offset = 1;
 		}
+
+		Debug.Log (string.Format (
+			"readyPlayers: {0} alivePlayers {1} Check 1: {2} 2: {3} Tot: {4}",
+			readyPlayers,
+			(playerController.alivePlayers - offset),
+			(readyPlayers == playerController.alivePlayers - offset),
+			(playerController.alivePlayers > 1),
+			((readyPlayers == playerController.alivePlayers - offset) && playerController.alivePlayers > 1)
+		));
+
+		return ((readyPlayers == playerController.alivePlayers - offset) && playerController.alivePlayers > 1);
 	}
 
+	/**
+	 * Method that keeps track of the number of ready players
+	 * @param ready The ready state of the player that initiated this call
+	 */
+	public void doReadyChange (bool ready) {
+		// Choose what to do
+		if (ready) {
+			readyPlayers++;
+		} else {
+			readyPlayers--;
+		}
+	}
+	#endregion
+
+	#region Game methods /// @name Game methods
 	/**
 	 * Function the gets the game underway
 	 */
 	public void doStartGame () {
-		debug ("Started game");
+		debug ("Starting game");
 
 		// Get the maps controller
 		MapsController mapsController = MapsController.S;
 
-		// Choose the map based on the number of players
-		switch (playerController.getNumPlayers ()) {
-		case 2:
-			mapsController.construct (1);
-			break;
-		case 3:
-			mapsController.construct (2);
-			break;
-		case 4:
-			mapsController.construct (0);
-			break;
-		}
+		// Create the map based on the number of players
+		mapsController.construct (playerController.getNumPlayers ());
 
 		// Create the units
+		debug ("Calling to create units");
 		unitsController.doCreateUnitsAtStart ();
+	}
 
+	public void doShowGame () {
 		// Move the camera to the map, wait for 2 seconds and then start player 1's turn
 		RemoteCamera cam = RemoteCamera.S;
 		cam.moveToMap ();
 
-		// Start the game with player1's turn
+		// Start the game with player 1's turn
 		turnsController.startTurn (0);
 	}
 
@@ -173,7 +190,20 @@ public class GameController : MonoBehaviour {
 	 */
 	public void doEndGame () {
 		debug ("Ending game");
+	}
+	#endregion
 
+	#region Debug methods /// @name Debug methods
+	/**
+	 * A method that prints the last n lines of debug text to the debug text
+	 * @param text The newest line to add to the text
+	 */
+	public static void showDebug (string text) {
+		// Get the instatiated version of this script
+		GameController gameController = GameController.S;
+
+		// Call the local version of this method
+		gameController.debug (text);
 	}
 
 	/**
@@ -182,7 +212,10 @@ public class GameController : MonoBehaviour {
 	 */
 	public void debug (string text) {
 		// Only continue if the object and script exists and in dev mode
-		if (debugText != null && debugTextScript != null && devTools.devMode) {
+		if (debugText != null && debugText != null && devTools.devMode) {
+			// Also send it to the debugger
+			Debug.Log (text);
+
 			// If the array is not initialize, initialize it
 			if (texts == null) {
 				texts = new List<string> ();
@@ -198,9 +231,10 @@ public class GameController : MonoBehaviour {
 			texts.Add (text);
 
 			// Update the text
-			debugTextScript.text = string.Join ("\n", texts.ToArray ());
+			debugText.text = string.Join ("\n", texts.ToArray ());
 		}
 	}
+	#endregion
 
 	/**
 	 * A function that will show the popup error dialog
@@ -218,20 +252,6 @@ public class GameController : MonoBehaviour {
 		errorDialog.gameObject.SetActive (true);
 	}
 
-	/**
-	 * Handler for the attempt to connect to a game and/or device
-	 * @param inUse The boolean flag of if the cast device is in use or not
-	 */
-	public void doTryCastScreen (bool inUse) {
-		// Choose what to do
-		if (inUse) {
-			networkController.doJoinGame ();
-		} else {
-			// Initialize a new game and setup the hosting
-			networkController.doHostGame ();
-		}
-	}
-
 	#region Timeout methods /// @name Timeout methods
 	/**
 	 * Method that resets the countdown timer to 5 minutes
@@ -246,7 +266,7 @@ public class GameController : MonoBehaviour {
 			}
 
 			// Set the countdown to wait 4½ minutes and set the initial time left to 30 seconds
-			timeoutRoutine = countdown (5, 5, false);//(60 * 4.5f), 30, false);
+			timeoutRoutine = countdown ((60 * 4.5f), 30, false);
 
 			// Start the countdown
 			StartCoroutine (timeoutRoutine);

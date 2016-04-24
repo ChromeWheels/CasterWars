@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -10,15 +12,19 @@ public class PlayerController : MonoBehaviour {
 	public static PlayerController S = null;
 
 	#region vars /// @name vars
-	[HideInInspector]
+	public GameObject playerPrefab = null; //!< The prefab of the player's object
+
+//	[HideInInspector]
 	public GameObject currentPlayer = null; //!< Local copy of the current player
-	[HideInInspector]
+//	[HideInInspector]
 	public Player currentPlayerScript = null; //!< The script of the current player
-	[HideInInspector]
+//	[HideInInspector]
 	public int currentPlayerIndex = 0; //!< The array index of the current player
 
 	[HideInInspector]
 	public int alivePlayers = 0; //!< The number of players that are still alive
+	[HideInInspector]
+	public string factionName = ""; //!< The chosen faction for this player
 
 	private Players playersCollection = null; //!< Local reference to the players collection
 	#endregion
@@ -26,6 +32,8 @@ public class PlayerController : MonoBehaviour {
 	#region Controllers vars /// @name Controllers vars
 	private GameController gameController = null; //!< Local reference to the game controller
 	private MapsController mapsController = null; //!< Local reference to the maps controller
+	private NetworkController networkController = null; //!< The local reference to the network controller and API
+	private UIController uiController = null; //!< The local reference to the UIController
 	private UnitsController unitsController = null; //!< The local reference to the unit's controller
 	#endregion
 
@@ -41,9 +49,12 @@ public class PlayerController : MonoBehaviour {
 	 * Runs at load time
 	 */
 	void Start () {
+		playersCollection = Players.S;
+
 		gameController = GameController.S;
 		mapsController = MapsController.S;
-		playersCollection = Players.S;
+		networkController = NetworkController.S;
+		uiController = UIController.S;
 		unitsController = UnitsController.S;
 	}
 	#endregion
@@ -52,30 +63,21 @@ public class PlayerController : MonoBehaviour {
 	/**
 	 * Creates the player
 	 */
-	public GameObject doCreatePlayer () {//GameObject playerPrefab) {
-		// Create the player
-		GameObject newPlayer = new GameObject ();
+	public GameObject doCreatePlayer () {
+		// Initialize the new player
+		GameObject newPlayer = null;
 
-		// Assign the parent
-		newPlayer.transform.SetParent (GameObject.Find ("Players").transform);
+		// Check if the prefab is null
+		if (playerPrefab == null) {
+			// Create a blank object for the player
+			newPlayer = new GameObject ();
+		} else {
+			// Create the player
+			newPlayer = Instantiate (playerPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+		}
 
-		// Name the player
-		newPlayer.name = string.Format ("Player {0}", (playersCollection.players.Count + 1));
-
-		// Add a player script to the player
-		newPlayer.AddComponent<Player> ();
-
-		// Get the script and set the player number
-		newPlayer.GetComponent<Player> ().generalSettings.playerNumber = playersCollection.players.Count;
-
-		// Add the player to the collection
-		playersCollection.players.Add (newPlayer);
-
-		// Initialize the points
-		updatePoints ((playersCollection.players.Count - 1), gameController.populationSettings.populationAtStart, true);
-
-		// Update the alive player count
-		alivePlayers++;
+		// Initialize the player
+		doInitializePlayer (newPlayer);
 
 		return newPlayer;
 	}
@@ -85,9 +87,21 @@ public class PlayerController : MonoBehaviour {
 	 * @param playerPrefab The prefab of the player
 	 */
 	public GameObject doCreatePlayer (GameObject playerPrefab) {
+		if (playerPrefab == null) { Debug.LogError ("null at PlayerController.doCreatePlayer"); }
 		// Create the player
 		GameObject newPlayer = Instantiate (playerPrefab, Vector3.zero, Quaternion.identity) as GameObject;
 
+		// Initialize the player
+		doInitializePlayer (newPlayer);
+
+		return newPlayer;
+	}
+
+	/**
+	 * Initializes the newly created player
+	 * @param newPlayer The newly created player
+	 */
+	private void doInitializePlayer (GameObject newPlayer) {
 		// Assign the parent
 		newPlayer.transform.SetParent (GameObject.Find ("Players").transform);
 
@@ -105,8 +119,6 @@ public class PlayerController : MonoBehaviour {
 
 		// Update the alive player count
 		alivePlayers++;
-
-		return newPlayer;
 	}
 	#endregion
 
@@ -123,7 +135,7 @@ public class PlayerController : MonoBehaviour {
 		currentPlayer = getPlayer (index);
 
 		// Get the player's script
-		currentPlayerScript = currentPlayer.GetComponent<Player> ();
+		currentPlayerScript = getPlayer (index).GetComponent<Player> ();
 	}
 	#endregion
 
@@ -180,7 +192,13 @@ public class PlayerController : MonoBehaviour {
 	 * @param faction The name of the faction that the player has selected
 	 */
 	public void doSelectFaction (string faction) {
-		doSelectFaction (currentPlayerIndex, faction);
+		// Call the multiplayer calling function
+		NetworkController.GetMultiplayerController().doSelectFaction (faction);
+
+		// Set the faction locally
+		factionName = faction;
+
+		uiController.showCanvas ("Units Select");
 	}
 
 	/**
@@ -189,16 +207,13 @@ public class PlayerController : MonoBehaviour {
 	 * @param faction The name of the faction that the player has selected
 	 */
 	public void doSelectFaction (int playerNum, string faction) {
+		gameController.debug (string.Format ("Setting faction for player {0} to {1}", playerNum.ToString(), faction));
+
 		// Get the player's script
 		Player player = getPlayer (playerNum).GetComponent<Player> ();
 
 		// Assign the faction
 		player.generalSettings.factionName = faction;
-
-		if (!gameController.devTools.devMode) {
-			// Move to next screen
-			//			uiScript.showCanvas ("Units Select");
-		}
 	}
 	#endregion
 

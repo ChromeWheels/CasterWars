@@ -38,6 +38,8 @@ namespace Google.Cast.RemoteDisplay.UI {
      */
     private bool isCasting = false;
 
+		private bool isClient = false;
+
     /**
      * A private copy of the UI sprites, so they can be used locally.
      */
@@ -68,6 +70,16 @@ namespace Google.Cast.RemoteDisplay.UI {
       Show();
     }
 
+	/**
+     * Shows the "casting" state for the cast button.
+     */
+	public void ShowCasting(bool isClient) {
+		isCasting = true;
+		connectingAnimator.enabled = false;
+		castButton.image.sprite = uiSprites.casting;
+		this.isClient = isClient;
+	}
+	
     /**
      * Shows the "connecting" animation for the cast button.
      */

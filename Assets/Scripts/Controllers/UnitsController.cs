@@ -20,6 +20,7 @@ public class UnitsController : MonoBehaviour {
 	[HideInInspector]
 	public Unit currentUnitScript = null; //!< The script of the current unit
 
+	private Dictionary<string, int>[] playerUnitCounts = null; //!< The stored array of unit counts
 	private Vector3 oldPosition = Vector3.zero; //!< The old (original) position of the unit that is being moved
 	private Vector3 newPosition = Vector3.zero; //!< The new (destination) position of the unit that is being moved
 	private int minUnitCost = 100; //!< The minimum cost to create a new unit
@@ -60,6 +61,8 @@ public class UnitsController : MonoBehaviour {
 
 		unitTypesCollection = UnitTypes.S;
 
+		playerUnitCounts = new Dictionary<string, int>[4];
+
 		// Copy the settings from the parent unit types to the faction units
 		propagateOptions ();
 	}
@@ -89,6 +92,7 @@ public class UnitsController : MonoBehaviour {
 	public void doCreateUnitsAtStart () {
 		// Loop through the players
 		foreach (GameObject currPlayer in playerController.getPlayers ()) {
+			GameController.showDebug ("Creating units for player " + currPlayer.name);
 			// Get the unit counts
 			Dictionary<string, int> unitCounts = getPlayerUnitCounts (currPlayer);
 
@@ -480,45 +484,63 @@ public class UnitsController : MonoBehaviour {
 
 	#region Unit counts /// @name Unit counts
 	/**
+	 * Handler for the ok button on the unit's select UI
+	 */
+	public void doSetUnitCounts () {
+		// Get the units panel
+		UnitsSelectPanel unitsSelect = UnitsSelectPanel.S;
+
+		// Cannot pass dictionaries over UNET so, need to convert to arrays
+		// Get the unitCounts
+		Dictionary<string, int> unitCounts = unitsSelect.getUnitCounts ();
+
+		// Initialize these arrays to the size of the units count array
+		string[] units = new string[unitCounts.Count];
+		int[] counts = new int[unitCounts.Count];
+
+		// Loop through the unitCounts array
+		int i = 0;
+		foreach (KeyValuePair<string, int> unit in unitCounts) {
+			// set the values in the arrays
+			units[i] = unit.Key;
+			counts [i] = unit.Value;
+
+			// Bump the counter
+			i++;
+		}
+
+		// Call the multiplayer calling function
+		NetworkController.GetMultiplayerController().doSetUnitCounts (units, counts);
+	}
+
+	/**
+	 * Sets the unit counts for the provided user
+	 * @param playerNumber The array index of the requesting player
+	 * @param units The string array of units
+	 * @param counts The matching int array of counts for the units
+	 */
+	public void doSetUnitCounts (int playerNumber, string[] units, int[] counts) {
+		// Cannot pass dictionaries over UNET so, need to reconstruct it
+		// Initialize the dictionary
+		Dictionary<string, int> unitCounts = new Dictionary<string, int> ();
+
+		// Loop through the arrays
+		for (int i = 0; i < units.Length; i++) {
+			// Add the unit and count to the dictionary
+			unitCounts.Add (units[i], counts[i]);
+		}
+
+		// Store the unit counts for the provided user
+		playerUnitCounts [playerNumber] = unitCounts;
+	}
+
+	/**
 	 * Gets the counts for each unit type for the provided player
 	 * @param player The player to get the counts for
 	 * @return An associative array of unit types and counts
 	 */
 	private Dictionary<string, int> getPlayerUnitCounts (GameObject player) {
-		// Initialize the returned vector
-		Vector2 initLocation = Vector2.zero;
-
-		// Initialize the unitCounts array
-		Dictionary<string, int> unitCounts = null;
-
-		// Get the player's number
-		int playerNumber = player.GetComponent<Player> ().generalSettings.playerNumber;
-
-		// Do this only if devMode is enabled
-		if (gameController.devTools.devMode) {
-			// Get the UnitTypes script and grab the unit types array
-			Dictionary<string, GameObject> unitTypes = UnitTypes.S.types;
-
-			// Reset the array
-			unitCounts = new Dictionary<string, int> ();
-
-			// Loop through the unitTypes and set a population count
-			foreach (KeyValuePair<string, GameObject> type in unitTypes) {
-				// Skip the commander type
-				if (type.Key.CompareTo ("Commander") == 0) {
-					continue;
-				}
-
-				player.GetComponent<Player> ().remainingPoints -= (type.Value.GetComponent<Unit> ().generalInformation.populationCost * gameController.devTools.numUnits);
-				unitCounts.Add (type.Key, gameController.devTools.numUnits);
-			}
-		} else {
-			// Get the unit counts
-			UnitsSelectPanel unitsSelect = UnitsSelectPanel.S;
-			unitCounts = unitsSelect.getUnitCounts (playerNumber);
-		}
-
-		return unitCounts;
+		return playerUnitCounts [player.GetComponent<Player> ().generalSettings.playerNumber];
 	}
 	#endregion
 

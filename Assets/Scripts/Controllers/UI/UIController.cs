@@ -10,14 +10,22 @@ public class UIController : MonoBehaviour {
 
 	public static UIController S = null;
 
+	#region public vars /// @name public vars
 	public GameObject[] canvasObjects = null; //!< Collection of the UI canvases
 	public GameObject[] modalObjects = null; //!< Collection of modals (popups) for the UI
 	public DialogController dialogController = null; //!< The controller for the dialog
+	#endregion
 
+	#region private vars /// @name private vars
 	private Dictionary<string, GameObject> canvases = null; //!< Associative array of the UI canvases
 	private Dictionary<string, GameObject> modals = null; //!< Associative array of the UI modals
 	private UnitsSelectPanel unitsSelectPanel = null; //!< Local reference to the UnitsSelectPanel
+	#endregion
 
+	#region Controllers vars /// @name Controllers vars
+	#endregion
+
+	#region Unity methods /// @name Unity methods
 	/**
 	 * Called when the script is loaded, before the game starts
 	 */
@@ -42,20 +50,28 @@ public class UIController : MonoBehaviour {
 	 */
 	void Start () {
 	}
+	#endregion
 
+	#region Canvas methods /// @name Canvas methods
 	/**
 	 * Function that shows the requested canvas on the mobile phone
 	 * @param canvas String name of the canvas
 	 */
 	public void showCanvas (string canvas) {
+		// Initialize the canvas to show
 		GameObject hiddenCanvas = null;
 
 		try {
+			// Hide all of the canvases, this eleminates double showing
 			hideAllCanvases ();
 
+			// Get the wanted canvas
 			canvases.TryGetValue (canvas, out hiddenCanvas);
+
+			// Show the canvas
 			hiddenCanvas.SetActive (true);
 
+			// Choose what to do
 			switch (canvas) {
 			case "Units Select":
 				unitsSelectPanel = UnitsSelectPanel.S;
@@ -71,12 +87,16 @@ public class UIController : MonoBehaviour {
 	 * Function that hides all of the canvases
 	 */
 	public void hideAllCanvases () {
+		// Loop through the canvases
 		foreach (KeyValuePair<string, GameObject> canvas in canvases) {
+			// Ensure that the canvas exists
 			if (canvas.Value != null) {
+				// Hide the canvas
 				canvas.Value.SetActive (false);	
 			}
 		}
 	}
+	#endregion
 
 	#region Dialog methods /// @name Dialog methods
 	/**
@@ -103,6 +123,9 @@ public class UIController : MonoBehaviour {
 		dialogController.message.text = message;
 	}
 
+	/**
+	 * Method that closes the dialog
+	 */
 	public void closeDialog () {
 		// Deconstruct the dialog first
 		dialogController.deconstruct ();

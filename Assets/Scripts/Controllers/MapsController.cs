@@ -12,7 +12,7 @@ public class MapsController : MonoBehaviour {
 
 	[HideInInspector]
 	public List<int> locationIndexes = null; //!< Temporary list of unique neighbor locations. Used to prevent duplicate locations in List<Vector2> locations
-	[HideInInspector]
+//	[HideInInspector]
 	public Map mapScript = null; //!< Local reference to the Map's script
 	[HideInInspector]
 	public Dimensions dimensions = null; //!< Local copy of the map's dimensions
@@ -40,17 +40,20 @@ public class MapsController : MonoBehaviour {
 		movementController = MovementController.S;
 		resourceTileController = ResourceTileController.S;
 		tilesController = TilesController.S;
+
+
 	}
 	#endregion
 
 	/**
-	 * Constructs and loads the map from index
-	 * @param index The index of the map from the list of maps
+	 * Constructs and loads the map
+	 * @param players The number of players in the game
 	 */
-	public void construct (int index) {
-		// Get the map from the collections
+	public void construct (int players) {
+		// Get a map from the collections
 		Maps mapsCollection = Maps.S;
-		GameObject mapPrefab = mapsCollection.maps [index];
+		GameObject mapPrefab = mapsCollection.getRandomMap (players);
+		GameController.showDebug ("map: " + mapPrefab.name);
 
 		// Instantiate the new map
 		GameObject map = Instantiate (mapPrefab, new Vector3 (0, -0.1f, 0), Quaternion.identity) as GameObject;

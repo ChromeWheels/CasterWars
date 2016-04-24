@@ -77,7 +77,8 @@ public class NavController : MonoBehaviour {
 		showHideUI (true);
 
 		// Get the availability of the directions
-		Dictionary<string, bool> directions = movementController.getMovePossibility (location);
+		MultiplayerController controller = NetworkController.GetMultiplayerController ();
+		Dictionary<string, bool> directions = new Dictionary<string, bool> ();//controller.doGetMovePossibility (location);
 
 		// Loop through the directions array
 		foreach (KeyValuePair<string, bool> direction in directions) {
@@ -97,4 +98,6 @@ public class NavController : MonoBehaviour {
 		// Always enable the stay put button
 		buttons [4].GetComponent<Button> ().interactable = true;
 	}
+
+//	public IEnumerator
 }

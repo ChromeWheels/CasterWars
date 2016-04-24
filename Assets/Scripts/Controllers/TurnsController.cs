@@ -53,7 +53,7 @@ public class TurnsController : MonoBehaviour {
 	public void startTurn (int playerNumber) {
 		// Ensure that there are more than 1 player alive
 		if (playerController.alivePlayers > 1) {
-//			Debug.Log (string.Format ("Starting the turn for player {0}", (playerNumber + 1)));
+//			gameController.debug (string.Format ("Starting the turn for player {0}", (playerNumber + 1)));
 
 			// Ensure that the player exists
 			if (playerNumber < playerController.getNumPlayers ()) {
@@ -111,7 +111,7 @@ public class TurnsController : MonoBehaviour {
 			remoteCamera.moveTo (mapsController.convertLocation (unitsController.currentUnit.transform.position), true);
 		} else {
 			// The player is not in bounds... end the turn
-			endTurn ();
+//			endTurn ();
 		}
 	}
 
