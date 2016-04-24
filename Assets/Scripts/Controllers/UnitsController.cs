@@ -7,6 +7,7 @@ using System.Collections.Generic;
  */
 public class UnitsController : MonoBehaviour {
 
+	public AudioClip[] audioClip;
 	public static UnitsController S = null;
 
 	#region Variables /// @name vars
@@ -359,6 +360,9 @@ public class UnitsController : MonoBehaviour {
 		// Move the unit's location in the map array
 		moveUnit (oldPosition, newPosition);
 
+		//Play the audio clip for the unit
+		PlaySound(unit);
+
 		// Start the co-routine to gracefully move the unit
 		StartCoroutine (Transition ());
 
@@ -621,6 +625,89 @@ public class UnitsController : MonoBehaviour {
 	 * Heal all of the units that are available to be healed
 	 */
 	public void healUnits () {
+	}
+	#endregion
+
+	#region Play Sounds /// @name Play Sounds
+	/** 
+	 * This is the class to play what sound based on the unit type
+	 */
+	public void PlaySound(GameObject unit) {
+		if (unit.generalInformation.factionName == BearCommander) {
+			audio.clip = AudioClip[6];
+		}
+		else if(unit.generalInformation.factionName == BearHeavyMelee){
+			audio.clip = AudioClip[2];
+		}
+		else if(unit.generalInformation.factionName == BearHeavyRanged){
+			audio.clip = AudioClip[3];
+		}
+		else if(unit.generalInformation.factionName == BearMelee){
+			audio.clip = AudioClip[0];
+		}
+		else if(unit.generalInformation.factionName == BearRanged){
+			audio.clip = AudioClip[1];
+		}
+		else if(unit.generalInformation.factionName == BearSpecial){
+			audio.clip = AudioClip[6];
+		}
+		else if(unit.generalInformation.factionName == VampireCommander){
+			audio.clip = AudioClip[5];
+		}
+		else if(unit.generalInformation.factionName == VampireHeavyMelee){
+			audio.clip = AudioClip[2];
+		}
+		else if(unit.generalInformation.factionName == VampireHeavyRanged){
+			audio.clip = AudioClip[3];
+		}
+		else if(unit.generalInformation.factionName == VampireMelee){
+			audio.clip = AudioClip[0];
+		}
+		else if(unit.generalInformation.factionName == VampireRanged){
+			audio.clip = AudioClip[1];
+		}
+		else if(unit.generalInformation.factionName == VampireSpecial){
+			audio.clip = AudioClip[4];
+		}
+		else if(unit.generalInformation.factionName == MushroomCommander){
+			audio.clip = AudioClip[11];
+		}
+		else if(unit.generalInformation.factionName == MushroomHeavyMelee){
+			audio.clip = AudioClip[2];
+		}
+		else if(unit.generalInformation.factionName == MushroomHeavyRanged){
+			audio.clip = AudioClip[3];
+		}
+		else if(unit.generalInformation.factionName == MushroomMelee){
+			audio.clip = AudioClip[0];
+		}
+		else if(unit.generalInformation.factionName == MushroomRanged){
+			audio.clip = AudioClip[1];
+		}
+		else if(unit.generalInformation.factionName == MushroomSpecial){
+			audio.clip = AudioClip[10];
+		}
+		else if(unit.generalInformation.factionName == TomeCommander){
+			audio.clip = AudioClip[9];
+		}
+		else if(unit.generalInformation.factionName == TomeHeavyMelee){
+			audio.clip = AudioClip[2];
+		}
+		else if(unit.generalInformation.factionName == TomeHeavyRanged){
+			audio.clip = AudioClip[3];
+		}
+		else if(unit.generalInformation.factionName == TomeMelee){
+			audio.clip = AudioClip[0];
+		}
+		else if(unit.generalInformation.factionName == TomeRanged){
+			audio.clip = AudioClip[1];
+		}
+		else if(unit.generalInformation.factionName == TomeSpecial){
+			audio.clip = AudioClip[8];
+		}
+		//Actuallys plays the clip
+		audio.Play();
+
 	}
 	#endregion
 }
